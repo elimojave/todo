@@ -505,10 +505,10 @@ function sectionHTML(s,depth){
       '<span class="sgrip" title="Drag to reorder" aria-hidden="true">'+SVG_MOVE+'</span>'+
     '</div>'+
     (s.collapsed?'':'<div class="sec-body">'+
+      (depth===0?kids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+ // sub-sections first, then the section's own tasks and its + button
       vis.map(taskHTML).join('')+
       (hidden?'<p class="none">'+hidden+(hidden===1?' task':' tasks')+' here hidden by the filter</p>':'')+
       addRowHTML(s)+
-      (depth===0?kids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+
     '</div>')+
   '</section>';
 }
