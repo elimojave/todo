@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work to-do</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2322323D'/%3E%3Cpath d='M8 16.5l5.5 5.5L24 10' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
+<style>
+:root{
+  --page:#FFFFFF; --hover:#E6EAED; --raised:#FFFFFF;
+  --ink:#18262F; --muted:#586874; --rule:#BCC5CC;
+  --accent:#1B58B8; --accent-ink:#FFFFFF;
+  --warn:#8F5B00; --bad:#B0302A;
+  --display:Bahnschrift,"DIN Alternate","DIN Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--page)}
+html.filtering{--page:#E6EAED}
+body{margin:0;font:14px/1.35 var(--body);color:var(--ink);background:var(--page);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+
+/* ---------- pinned header ---------- */
+.top{position:sticky;top:0;z-index:5;background:var(--page);border-bottom:1px solid var(--rule);padding:10px 0}
+.top-row{display:flex;align-items:center;gap:8px 10px}
+@media (max-width:900px){.top-row{flex-wrap:wrap}}
+.list-name{flex:1 1 150px;min-width:0;border:0;border-bottom:1px dashed transparent;background:transparent;padding:2px 0;
+  font:600 24px/1.15 var(--display);font-stretch:87.5%;letter-spacing:.01em;text-overflow:ellipsis}
+.list-name:hover{border-bottom-color:var(--rule)}
+.list-name:focus{outline:none;border-bottom:1px solid var(--accent)}
+.filter{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 2px}
+.filter svg{display:block;margin-right:1px}
+.xbtn{width:18px;height:18px;flex:none;border:0;border-radius:50%;background:transparent;padding:0;font:700 15px/18px var(--body);color:var(--ink)}
+.xbtn:hover{background:rgba(24,38,47,.14)}
+.dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--c);background:transparent;padding:0;flex:none}
+.dot[aria-pressed="true"]{background:var(--c)}
+.file-state{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:140px;flex:none;text-align:right}
+.file-state b{color:var(--ink);font-weight:600}
+.file-state.warn{color:var(--warn)} .file-state.bad{color:var(--bad)}
+.btn{height:30px;padding:0 11px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;white-space:nowrap;flex:none}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad)}
+.btn.sm{height:26px;font-size:13px;padding:0 9px}
+.icon-btn{width:26px;height:26px;flex:none;border:0;background:transparent;border-radius:4px;display:grid;place-items:center;padding:0}
+.icon-btn:hover{background:rgba(24,38,47,.12)}
+.banner{margin-top:8px;padding:7px 12px;border-left:4px solid var(--accent);background:var(--raised);
+  display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;font-size:13.5px}
+.banner.warn{border-left-color:var(--warn)} .banner.bad{border-left-color:var(--bad)}
+.banner p{margin:0;flex:1 1 300px}
+
+/* ---------- sections ---------- */
+main{padding:4px 0 96px}
+.sec{margin-top:8px}
+.sec .sec{margin:5px 0 5px 16px}
+.sec-head{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 3px 0 4px;border-radius:4px;border:1px solid rgba(24,38,47,.2);
+  cursor:pointer;user-select:none;-webkit-user-select:none}
+.d1>.sec-head{min-height:24px;background:transparent;border:0;border-bottom:1.5px solid var(--muted);border-radius:0;padding-left:0}
+.sec-name{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:600 16px/1.2 var(--display);font-stretch:87.5%;letter-spacing:.02em}
+.d1 .sec-name{font-size:13px;letter-spacing:.03em;padding:2px 8px;border-radius:3px}
+.sec-rename{flex:1;min-width:0;height:22px;border:1px solid var(--accent);border-radius:3px;background:var(--raised);padding:0 6px;font:600 14.5px var(--display)}
+.caret svg,.chev svg{display:block;transition:transform .15s}
+.collapsed>.sec-head .caret svg,.collapsed>.arch-head .caret svg{transform:rotate(-90deg)}
+.grip,.sgrip{cursor:grab;color:var(--ink);opacity:.35;width:14px;height:20px;flex:none;display:grid;place-items:center;touch-action:none}
+.grip svg,.sgrip svg{display:block;pointer-events:none}
+.grip:hover,.sgrip:hover{opacity:1}
+.mix{display:flex;gap:2px;width:150px;height:16px;flex:none}
+.sec-head .fill{flex:1}
+.mix i{display:block;min-width:17px;border-radius:2px;color:#fff;font:700 11px/16px var(--display);font-style:normal;text-align:center;font-variant-numeric:tabular-nums}
+.sec-body{padding:2px 0 1px}
+.sec.sdrop-before{box-shadow:0 -3px 0 var(--accent)}
+.sec.sdrop-after{box-shadow:0 3px 0 var(--accent)}
+.sec.dragging{opacity:.45}
+.none{margin:0;padding:2px 0 2px 81px;color:#9BA6AE;font-size:12.5px}
+
+/* ---------- tasks ---------- */
+.tw{margin:2px 0;border:1.5px solid transparent;border-radius:6px;scroll-margin-top:calc(var(--top-h,0px) + 8px)}
+.tw.open{border-color:var(--ink);background:var(--raised);margin:4px 0}
+.tw.dragging{opacity:.4}
+.ghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;background:#22323D;color:#fff;padding:4px 10px;border-radius:4px;font-size:13px;
+  max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 2px 0 rgba(24,38,47,.25)}
+html.is-dragging,html.is-dragging *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+.tw.drop-before{box-shadow:0 -2px 0 var(--accent)}
+.tw.drop-after{box-shadow:0 2px 0 var(--accent)}
+.drop-into{outline:2px solid var(--accent);outline-offset:-2px}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) 26px 14px;align-items:center;gap:7px;padding:0 2px;min-height:28px}
+.tw.open>.task{padding-top:3px}
+.pick{display:flex;gap:4px}
+.pick button{width:15px;height:15px;border-radius:50%;padding:0;border:2px solid color-mix(in srgb,var(--c) 50%,transparent);background:transparent}
+.pick button:hover{border-color:var(--c)}
+.pick button[aria-checked="true"]{background:var(--c);border-color:var(--c)}
+.t-box{border:1px solid var(--rule);border-radius:4px;background:var(--raised);padding:3px 8px;min-height:26px;cursor:text;color:var(--tc);
+  display:flex;align-items:center;gap:8px}
+.t-box:hover{border-color:var(--ink)}
+.t-title{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.3}
+.ind{display:flex;gap:5px;flex:none;color:var(--muted)}
+.ind svg{display:block}
+.t-edit{width:100%;min-width:0;height:28px;border:1px solid var(--accent);border-radius:4px;padding:0 8px;background:var(--raised);color:var(--tc)}
+.t-edit:focus{outline:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.tw.open .chev svg{transform:rotate(180deg)}
+@keyframes flash{from{background:color-mix(in srgb,var(--accent) 30%,#fff)}to{background:var(--raised)}}
+.tw.flash .t-box{animation:flash 1.4s ease-out}
+
+.detail{padding:8px 56px 8px 81px;color:#111;display:flex;flex-direction:column;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f>span{font-size:12.5px;color:#111;font-weight:600}
+.detail input,.detail textarea{width:100%;min-width:0;border:1px solid var(--rule);border-radius:3px;background:#fff;color:#111;font-size:14px}
+.detail input{height:28px;padding:0 8px}
+.detail textarea{min-height:60px;padding:5px 8px;resize:vertical;line-height:1.4}
+.links{display:flex;flex-direction:column;gap:4px}
+.link-row{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr) 28px;gap:6px;align-items:center}
+.open-link{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--rule);border-radius:3px;background:#fff;color:var(--accent);text-decoration:none;font-weight:700}
+.open-link:hover{border-color:var(--ink)}
+.open-link[aria-disabled="true"]{visibility:hidden}
+.d-foot{display:flex;justify-content:flex-end}
+
+.add-row{padding:1px 56px 1px 81px;min-height:28px;display:flex;align-items:center}
+.add-row input{width:100%;height:26px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;padding:0 8px}
+.add-row input::placeholder{color:var(--muted)}
+.add-row input:focus{outline:none;border-color:var(--accent)}
+.plus{display:inline-flex;align-items:center;gap:7px;height:26px;border:0;background:transparent;padding:0 8px 0 0;color:var(--muted)}
+.plus i{width:20px;height:20px;border:1.5px dashed currentColor;border-radius:50%;display:grid;place-items:center;font:700 15px/1 var(--body);font-style:normal;padding-bottom:1px}
+.plus span{opacity:0;font-size:13px}
+.plus:hover,.plus:focus-visible{color:var(--ink)}
+.plus:hover span,.plus:focus-visible span{opacity:1}
+.below{margin-top:14px}
+
+/* ---------- archive ---------- */
+.archive{margin-top:18px}
+.arch-head{display:flex;align-items:center;gap:6px;min-height:32px;padding:0 6px 0 4px;border:1px dashed var(--muted);border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.arch-head h2{margin:0;font:600 16px/1.2 var(--display);font-stretch:87.5%;letter-spacing:.02em}
+.arch-n{font:700 12.5px var(--display);font-variant-numeric:tabular-nums;background:var(--ink);color:#fff;border-radius:9px;min-width:20px;height:18px;line-height:18px;text-align:center;padding:0 6px}
+.archive.none-yet .arch-head{cursor:default;opacity:.65}
+
+.gate{margin:48px auto;max-width:460px;text-align:center}
+.gate h2{font:600 20px var(--display);margin:0 0 6px}
+.gate p{color:var(--muted);margin:0 0 14px}
+.gate .btn{height:40px;padding:0 18px}
+.linkish{border:0;background:transparent;color:var(--accent);text-decoration:underline;padding:0}
+body.gated .filter,body.gated .hbtn{display:none}
+
+/* ---------- GitHub connection box ---------- */
+dialog{border:1px solid var(--ink);border-radius:4px;background:#fff;color:var(--ink);padding:18px;width:100%;max-width:min(480px,calc(100vw - 24px))}
+dialog::backdrop{background:rgba(10,20,28,.5)}
+dialog h2{font:600 20px var(--display);margin:0 0 4px}
+dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
+.gf{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;font-size:12.5px;font-weight:600}
+.gf input{height:32px;border:1px solid var(--rule);border-radius:3px;padding:0 8px;font-size:14px;font-weight:400;background:#fff}
+.gf input:focus{outline:none;border-color:var(--accent)}
+.gh-err{color:var(--bad);font-size:13.5px;min-height:20px;margin:0 0 8px}
+.dlg-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.dlg-foot span{display:flex;gap:8px;margin-left:auto}
+
+/* ---------- popover and toast ---------- */
+#pop{position:fixed;z-index:40;min-width:200px;max-width:min(330px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;background:var(--raised);
+  border:1px solid var(--ink);border-radius:4px;padding:4px;box-shadow:3px 3px 0 rgba(24,38,47,.22)}
+#pop button{display:flex;flex-wrap:wrap;width:100%;align-items:center;gap:0 8px;text-align:left;border:0;background:transparent;padding:7px 10px;border-radius:3px}
+#pop button:hover,#pop button:focus-visible{background:var(--hover);outline:none}
+#pop button small{flex-basis:100%;color:var(--muted);font-size:12px}
+#pop button.danger{color:var(--bad)}
+#pop hr{border:0;border-top:1px solid var(--rule);margin:4px 0}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;background:#22323D;color:#EEF2F4;
+  padding:9px 14px;border-radius:4px;max-width:calc(100vw - 24px);font-size:13.5px}
+
+@media (max-width:640px){
+  .list-name{font-size:21px;flex-basis:100%}
+  .file-state{display:none}
+  .detail{padding:8px 8px 8px 10px}
+  .add-row{padding:1px 8px 1px 81px}
+  .sec .sec{margin-left:8px}
+  .mix{width:96px}
+  .link-row{grid-template-columns:minmax(0,1fr) 28px}
+  .link-row input:nth-child(2){grid-row:2}
+}
+@media (prefers-reduced-motion:reduce){.tw.flash .t-box{animation:none}.caret svg,.chev svg{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <div class="top-row">
+      <input id="listName" class="list-name" aria-label="List name" spellcheck="false">
+      <div class="filter" id="filter" role="group" aria-label="Filter by color">
+        <button id="clearFilter" class="xbtn" aria-label="Clear the filter" title="Clear the filter" style="visibility:hidden">&#215;</button>
+        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M1 2h13L9 8v5l-3-1.6V8z" fill="currentColor"/></svg>
+      </div>
+      <button id="collapseAll" class="btn sm hbtn">Collapse all</button>
+      <button id="expandAll" class="btn sm hbtn">Expand all</button>
+      <span id="fileState" class="file-state" aria-live="polite"></span>
+      <button id="fileBtn" class="btn primary">Connect to GitHub</button>
+      <button id="moreBtn" class="icon-btn" aria-label="Settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div id="banner"></div>
+  </div>
+</header>
+
+<main class="wrap" id="list"></main>
+
+<div id="pop" role="menu" hidden></div>
+<div id="toast" role="status" hidden></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<dialog id="ghDlg" aria-labelledby="ghTitle">
+  <h2 id="ghTitle">Connect to GitHub</h2>
+  <p>Your tasks are saved to a file named todo-data.json in your private repository. The access token is kept in this browser only and is sent only to GitHub.</p>
+  <label class="gf">GitHub username<input id="ghOwner" autocomplete="off" spellcheck="false"></label>
+  <label class="gf">Private repository<input id="ghRepo" autocomplete="off" spellcheck="false"></label>
+  <label class="gf">Access token<input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..."></label>
+  <p>To make a token: on GitHub, click your profile picture, then Settings, Developer settings, Personal access tokens, Fine-grained tokens. Give it access to only this repository, with Contents set to Read and write.</p>
+  <p class="gh-err" id="ghErr" role="alert"></p>
+  <div class="dlg-foot">
+    <button class="btn danger" id="ghForget" hidden>Disconnect this browser</button>
+    <span><button class="btn" id="ghCancel">Cancel</button><button class="btn primary" id="ghGo">Connect</button></span>
+  </div>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= helpers ================= */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
+const dateStamp=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const timeStr=d=>d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+const clip=s=>s.length>34?s.slice(0,32)+'\u2026':s;
+
+const SVG_CARET='<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const SVG_DOTS='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="13" cy="8" r="1.5" fill="currentColor"/></svg>';
+const SVG_MOVE='<svg width="12" height="18" viewBox="0 0 12 18" aria-hidden="true"><path d="M3 4.5l3-3 3 3M1 7.5h10M1 10.5h10M3 13.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+const SVG_NOTE='<svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M0 1h10M0 4.5h10M0 8h6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+const SVG_LINK='<svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M4 2.5H2.5a2 2 0 000 4H4M6 2.5h1.5a2 2 0 010 4H6M3.2 4.5h3.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+
+/* Status is stored as 1 to 4. The numbers are never shown; each one is only ever drawn as its color.
+   dot = circles, text = task text, seg = count bar, bg = section highlight. */
+const ST={
+  1:{name:'Gray',  dot:'#7F8A93',text:'#434D55',seg:'#5E6972',bg:'#D6DBDF'},
+  2:{name:'Orange',dot:'#F08A00',text:'#A85800',seg:'#B86200',bg:'#FFD9A6'},
+  3:{name:'Red',   dot:'#DC3A2E',text:'#C4281C',seg:'#C4281C',bg:'#F8C3BD'},
+  4:{name:'Green', dot:'#2F9E5E',text:'#1E7A45',seg:'#1E7A45',bg:'#BFE6CD'}
+};
+const STATUSES=[1,2,3,4];
+
+/* ================= state ================= */
+let data;
+let undoStack=[];
+const ui={open:null,renaming:null,flash:null,focus:null,filter:new Set(),keep:new Set(),adding:new Set(),archOpen:false};
+let rendering=false;
+let isSample=true, touched=false;
+
+/* GitHub connection. The page is public, so it holds no tasks and no token: the token lives only in this browser's storage. */
+let inFrame=false; try{inFrame=window.self!==window.top;}catch(e){inFrame=true;}
+const DATA_PATH='todo-data.json';
+const LS_KEY='work-todo-github';
+const LS_COLLAPSE='work-todo-collapse';
+const LS_DRAFT='work-todo-draft';
+let gh=null, connected=false, loading=false, loadError=null,
+    lastSha='', lastText='', saveTimer=0, retryTimer=0, saving=false, pending=false, dirtySeq=0,
+    unsaved=false, unsavedReal=false, conflict=false, saveError='', saveErrorKind='', offline=false, lastSavedAt=null, lastCheck=0, sentText='';
+
+/* ================= data ================= */
+function blankData(){
+  return {title:'Work to-do',sections:[],tasks:[]};
+}
+
+function sampleData(){
+  const sections=[], tasks=[];
+  const S=(name,parent,o)=>{o=o||{};const s={id:uid(),name:name,parent:parent?parent.id:null,collapsed:!!o.collapsed,archived:!!o.archived};sections.push(s);return s;};
+  const T=(sec,title,status,o)=>{o=o||{};tasks.push({id:uid(),title:title,status:status,section:sec.id,notes:o.notes||'',links:o.links||[]});};
+
+  const design=S('Design');
+  T(design,'Review weight estimate against the curb rating',2);
+  T(design,'Decide on hinged or lift-off access door for the filter section',1,
+    {notes:'Lift-off is cheaper, but service techs need two hands for it. Ask field service which they prefer before committing.'});
+  const encl=S('Enclosure and sheet metal',design);
+  T(encl,'Fix interference between drain pan and base rail',3,{notes:'Waiting on the coil supplier to confirm the final pan connection height.'});
+  T(encl,'Add hem to hinge side of the access door flat pattern',2);
+  T(encl,'Check bend relief on the filter rack bracket',1);
+  T(encl,'Add lifting lug detail to the base frame drawing',1);
+  T(encl,'Update gasket callout to closed-cell EPDM',4);
+  const panel=S('Controls panel',design);
+  T(panel,'Confirm SCCR label values against the breaker datasheet',4,{notes:'Distributor confirmed by email. Values match the label.'});
+  T(panel,'Lay out the door-mounted disconnect and HMI cutouts',4);
+  T(panel,'Print and apply terminal block labels on the prototype panel',4);
+
+  const eco=S('ECOs and BOM');
+  T(eco,'Release the ECO for the drain pan gasket change',2,{
+    notes:'Links can point at anything with a web address. The description next to each one is optional.',
+    links:[{url:'https://example.com/eco/142',desc:'ECO form'},{url:'https://example.com/drawings/drain-pan-rev-c',desc:'Drawing, rev C'}]});
+  T(eco,'Get approval on the damper actuator substitution',2,{notes:'With the approver since last week.'});
+  T(eco,'BOM scrub: flag single-source fasteners',1);
+  T(eco,'Add missing torque specs to the assembly notes',1);
+  T(eco,'Close out the ECO for the revised filter rack',4);
+
+  const test=S('Testing and instrumentation');
+  T(test,'Calibrate thermocouples before the airflow test',3);
+  T(test,'Write the test plan for the coil leaving-air temperature run',2,{
+    notes:'Include sensor locations, logging interval and pass criteria.',links:[{url:'https://example.com/test-plans/coil-lat',desc:''}]});
+  T(test,'Chase down the noisy channel on the data logger',2,{notes:'Needs the spare input module, which is on order. See Vendors and purchasing.'});
+  T(test,'Mount differential pressure taps across the filter bank',1);
+  T(test,'Post-process the fan curve data from last week',4);
+
+  const vend=S('Vendors and purchasing');
+  T(vend,'Request the compressor spec sheet from the supplier',1);
+  T(vend,'Compare two gasket suppliers on price and lead time',1,{
+    links:[{url:'https://example.com/quotes/gasket-a',desc:'Quote A'},{url:'https://example.com/quotes/gasket-b',desc:'Quote B'}]});
+  T(vend,'Receive and inspect the spare data logger input module',1);
+  T(vend,'Send revised drawings to the fabricator',4);
+
+  const admin=S('Admin and recurring',null,{collapsed:true});
+  T(admin,'Submit expense report',1);
+  T(admin,'Write up weekly design review notes',1);
+  T(admin,'Renew CAD seat',1,{notes:'Waiting on finance approval.'});
+
+  const old=S('Prototype 1 build',null,{archived:true});
+  T(old,'Assemble base frame and curb adapter',4);
+  T(old,'Leak check the coil connections',4);
+  const punch=S('Punch list',old);
+  T(punch,'Replace stripped rivnut on the left access panel',4);
+  T(punch,'Return the borrowed torque wrench to the shop',1);
+
+  return {title:'Work to-do',sections:sections,tasks:tasks};
+}
+
+/* Accepts this version's files and files saved by the earlier version of this tool. */
+function normalize(o){
+  if(!o||typeof o!=='object'||!Array.isArray(o.tasks)||!Array.isArray(o.sections)) throw new Error('not a to-do data file');
+  const d={title:typeof o.title==='string'&&o.title?o.title:'Work to-do'};
+  d.sections=o.sections.map(s=>({id:String(s.id||uid()),name:String(s.name||'Section'),parent:s.parent?String(s.parent):null,collapsed:!!s.collapsed,archived:!!s.archived}));
+  const byId=new Map(d.sections.map(s=>[s.id,s]));
+  d.sections.forEach(s=>{ if(s.parent&&(!byId.has(s.parent)||s.parent===s.id)) s.parent=null; });
+  d.sections.forEach(s=>{ // only two levels: anything nested deeper becomes a sub-section of its top-level section
+    let p=s.parent,top=null,n=0;
+    while(p&&++n<50){top=p;p=byId.get(p).parent;}
+    if(n>=50){s.parent=null;return;}
+    if(top&&top!==s.parent) s.parent=top;
+  });
+  d.sections.forEach(s=>{ if(s.parent) s.archived=false; });
+  const oldStatus={};
+  if(Array.isArray(o.statuses)) o.statuses.forEach(st=>{ if(st&&st.id!=null) oldStatus[st.id]=st.done?4:({todo:1,doing:2,waiting:2,blocked:3,done:4}[st.id]||1); });
+  const firstSec=()=>{ if(!d.sections.length) d.sections.push({id:uid(),name:'Inbox',parent:null,collapsed:false,archived:false}); return d.sections[0].id; };
+  d.tasks=o.tasks.map(t=>{
+    let st=1;
+    if(STATUSES.indexOf(t.status)>=0) st=t.status; else if(oldStatus[t.status]) st=oldStatus[t.status];
+    let links=[];
+    if(Array.isArray(t.links)) links=t.links.map(l=>({url:String((l&&l.url)||''),desc:String((l&&l.desc)||'')})).filter(l=>l.url||l.desc);
+    else if(t.link) links=[{url:String(t.link),desc:''}];
+    return {id:String(t.id||uid()),title:String(t.title||''),status:st,section:byId.has(t.section)?t.section:firstSec(),notes:String(t.notes||''),links:links};
+  });
+  return d;
+}
+const serialize=()=>JSON.stringify(Object.assign({app:'work-todo',version:2,saved:new Date().toISOString()},data),null,1);
+
+/* lookups */
+const task=id=>data.tasks.find(t=>t.id===id);
+const section=id=>data.sections.find(s=>s.id===id);
+const kids=pid=>data.sections.filter(s=>(s.parent||null)===pid);
+const rootOf=sid=>{const s=section(sid);return s&&s.parent?s.parent:sid;};
+const isArchived=sid=>{const r=section(rootOf(sid));return !!(r&&r.archived);};
+const deepIds=sid=>[sid].concat(kids(sid).map(k=>k.id));
+const deepTasks=sid=>{const ids=deepIds(sid);return data.tasks.filter(t=>ids.indexOf(t.section)>=0);};
+function sectionPath(sid){const s=section(sid);if(!s)return'';return s.parent?section(s.parent).name+' / '+s.name:s.name;}
+function orderedSections(){const out=[];kids(null).forEach(s=>{out.push(s);kids(s.id).forEach(k=>out.push(k));});return out;}
+/* red if any red, else orange if any orange, else green if every task is green, else gray */
+function rollup(tasks){
+  if(tasks.some(t=>t.status===3)) return 3;
+  if(tasks.some(t=>t.status===2)) return 2;
+  if(tasks.length&&tasks.every(t=>t.status===4)) return 4;
+  return 1;
+}
+
+/* ================= changes, undo ================= */
+function pushUndo(){
+  const snap=JSON.stringify(data);
+  if(undoStack[undoStack.length-1]===snap) return;
+  undoStack.push(snap); if(undoStack.length>40) undoStack.shift();
+}
+/* Edits are saved to GitHub a couple of seconds after you stop. Until that save has landed, the unsaved state is
+   also kept by this browser (the "draft"), so refreshing or closing the page in between loses nothing.
+   Which sections are collapsed is remembered by this browser straight away as well. */
+function markDirty(viewOnly){
+  if(connected) storeCollapse();
+  if(viewOnly===true){renderFile();return;} // collapsing alone is kept by this browser and rides along with the next real save
+  touched=true; unsavedReal=true; unsaved=true; dirtySeq++;
+  storeDraft();
+  if(connected&&!conflict){clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,2500);}
+  renderFile();
+}
+function commit(fn,opts){
+  const viewOnly=!!opts&&opts.undo===false;
+  if(!viewOnly) pushUndo();
+  fn(); markDirty(viewOnly); render();
+}
+function undo(){
+  if(!undoStack.length){toast('Nothing to undo');return;}
+  data=normalize(JSON.parse(undoStack.pop()));
+  ui.renaming=null; if(ui.open&&!task(ui.open)) ui.open=null;
+  markDirty(); render(); toast('Undone');
+}
+
+/* ================= filter ================= */
+const matches=t=>!ui.filter.size||ui.filter.has(t.status)||ui.keep.has(t.id);
+/* Picking colors opens every section that holds a task of those colors and closes the rest.
+   The open and closed states are left as they are when the filter is cleared. Archived sections are never touched. */
+function applyFilter(){
+  ui.keep.clear();
+  if(!ui.filter.size) return;
+  data.sections.forEach(s=>{
+    if(isArchived(s.id)) return;
+    s.collapsed=!deepTasks(s.id).some(t=>ui.filter.has(t.status));
+  });
+}
+
+/* ================= rendering ================= */
+function render(){document.documentElement.classList.toggle('filtering',ui.filter.size>0);renderTop();renderList();renderFile();}
+
+function renderTop(){
+  const name=$('#listName'); if(document.activeElement!==name) name.value=data.title;
+  document.title=data.title;
+  const f=$('#filter');
+  $$('.dot',f).forEach(b=>b.remove());
+  $('#clearFilter').style.visibility=ui.filter.size?'visible':'hidden';
+  f.insertAdjacentHTML('beforeend',STATUSES.map(n=>'<button class="dot" data-f="'+n+'" style="--c:'+ST[n].dot+'" aria-pressed="'+ui.filter.has(n)+'" aria-label="Show only '+ST[n].name.toLowerCase()+' tasks"></button>').join(''));
+}
+
+function hrefFor(u){
+  u=String(u||'').trim(); if(!u) return '';
+  if(/^(javascript|data|vbscript|blob):/i.test(u)) return '';
+  if(/^\\\\/.test(u)) return 'file:'+u.replace(/\\/g,'/');
+  if(/^[a-z]:[\\/]/i.test(u)) return 'file:///'+u.replace(/\\/g,'/');
+  if(/^[a-z][a-z0-9+.-]*:/i.test(u)) return u;
+  return 'https://'+u;
+}
+function linkRowHTML(l,i,tid){
+  const h=hrefFor(l.url);
+  return '<div class="link-row">'+
+    '<input data-act="l-url" data-fid="lu-'+tid+'-'+i+'" value="'+esc(l.url)+'" placeholder="Paste a link" aria-label="Link" autocomplete="off" spellcheck="false">'+
+    '<input data-act="l-desc" data-fid="ld-'+tid+'-'+i+'" value="'+esc(l.desc)+'" placeholder="Description (optional)" aria-label="Link description" autocomplete="off">'+
+    '<a class="open-link" target="_blank" rel="noopener noreferrer" aria-label="Open link in a new tab" title="Open link"'+(h?' href="'+esc(h)+'"':' aria-disabled="true"')+'>&#8599;</a>'+
+  '</div>';
+}
+function detailHTML(t){
+  const rows=t.links.concat([{url:'',desc:''}]).map((l,i)=>linkRowHTML(l,i,t.id)).join('');
+  return '<div class="detail">'+
+    '<label class="f"><span>Notes</span><textarea data-act="notes" data-fid="notes-'+t.id+'" rows="3">'+esc(t.notes)+'</textarea></label>'+
+    '<div class="f"><span>Links</span><div class="links">'+rows+'</div></div>'+
+    '<div class="d-foot"><button class="btn sm danger" data-act="delete">Delete task</button></div>'+
+  '</div>';
+}
+function taskHTML(t){
+  const open=ui.open===t.id;
+  const picks=STATUSES.map(n=>'<button role="radio" data-act="pick" data-s="'+n+'" style="--c:'+ST[n].dot+'" aria-checked="'+(t.status===n)+'" aria-label="'+ST[n].name+'"></button>').join('');
+  const hasN=!!t.notes.trim(), hasL=t.links.some(l=>l.url.trim());
+  const ind=(hasN||hasL)?'<span class="ind">'+(hasN?SVG_NOTE:'')+(hasL?SVG_LINK:'')+'</span>':'';
+  const main=open
+    ?'<input class="t-edit" data-act="title" data-fid="title-'+t.id+'" value="'+esc(t.title)+'" aria-label="Task text" autocomplete="off">'
+    :'<div class="t-box" data-act="open" tabindex="0" role="button" aria-expanded="false"><span class="t-title">'+esc(t.title)+'</span>'+ind+'</div>';
+  return '<div class="tw'+(open?' open':'')+(ui.flash===t.id?' flash':'')+'" data-tid="'+t.id+'" style="--tc:'+ST[t.status].text+'">'+
+    '<div class="task">'+
+      '<div class="pick" role="radiogroup" aria-label="Color">'+picks+'</div>'+
+      main+
+      '<button class="icon-btn chev" data-act="arrow" aria-expanded="'+open+'" aria-label="'+(open?'Hide':'Show')+' details">'+SVG_CARET+'</button>'+
+      '<span class="grip" title="Drag to move" aria-hidden="true">'+SVG_MOVE+'</span>'+
+    '</div>'+
+    (open?detailHTML(t):'')+
+  '</div>';
+}
+function addRowHTML(s){
+  const label='Add to '+esc(s.name);
+  return '<div class="add-row" data-sid="'+s.id+'">'+(ui.adding.has(s.id)
+    ?'<input data-act="add-input" data-fid="add-'+s.id+'" placeholder="'+label+'" aria-label="'+label+'" autocomplete="off">'
+    :'<button class="plus" data-act="add-open" aria-label="'+label+'"><i>+</i><span>'+label+'</span></button>')+'</div>';
+}
+function sectionHTML(s,depth){
+  const arch=isArchived(s.id);
+  const own=data.tasks.filter(t=>t.section===s.id);
+  const vis=arch?own:own.filter(matches);
+  const all=deepTasks(s.id);
+  const segs=STATUSES.map(n=>{const c=all.filter(t=>t.status===n).length;return c?'<i style="flex:'+c+';background:'+ST[n].seg+'">'+c+'</i>':'';}).join('');
+  const segLabel=STATUSES.map(n=>{const c=all.filter(t=>t.status===n).length;return c?c+' '+ST[n].name.toLowerCase():'';}).filter(Boolean).join(', ');
+  const name=ui.renaming===s.id
+    ?'<input class="sec-rename" data-act="rename-input" data-fid="ren-'+s.id+'" value="'+esc(s.name)+'" aria-label="Section name">'
+    :'<h2 class="sec-name"'+(depth===1?' style="background:'+ST[rollup(own)].bg+'"':'')+'>'+esc(s.name)+'</h2>';
+  const hidden=own.length-vis.length;
+  return '<section class="sec d'+depth+(s.collapsed?' collapsed':'')+'" data-sid="'+s.id+'">'+
+    '<div class="sec-head" data-act="toggle"'+(depth===0?' style="background:'+ST[rollup(all)].bg+'"':'')+'>'+
+      '<button class="icon-btn caret" data-act="toggle" aria-expanded="'+(!s.collapsed)+'" aria-label="'+(s.collapsed?'Expand ':'Collapse ')+esc(s.name)+'">'+SVG_CARET+'</button>'+
+      name+'<span class="fill"></span>'+
+      (depth===0?'<span class="mix" role="img" aria-label="'+esc(segLabel||'No tasks')+'">'+segs+'</span>':'')+
+      '<button class="icon-btn" data-act="sec-menu" aria-label="Options for '+esc(s.name)+'">'+SVG_DOTS+'</button>'+
+      '<span class="sgrip" title="Drag to reorder" aria-hidden="true">'+SVG_MOVE+'</span>'+
+    '</div>'+
+    (s.collapsed?'':'<div class="sec-body">'+
+      vis.map(taskHTML).join('')+
+      (hidden?'<p class="none">'+hidden+(hidden===1?' task':' tasks')+' here hidden by the filter</p>':'')+
+      addRowHTML(s)+
+      (depth===0?kids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+
+    '</div>')+
+  '</section>';
+}
+function renderList(){
+  const root=$('#list');
+  const gated=loading||!!loadError;
+  document.body.classList.toggle('gated',gated);
+  if(loading){root.innerHTML='<div class="gate"><h2>Loading your tasks</h2><p>Fetching them from GitHub.</p></div>';return;}
+  if(loadError){
+    root.innerHTML='<div class="gate"><h2>Your tasks could not be loaded</h2><p>'+esc(loadError.message)+'</p>'+
+      '<p><button class="btn primary" data-act="gh-retry">Try again</button></p>'+
+      '<p><button class="linkish" data-act="gh-setup">Check the GitHub connection</button></p></div>';
+    return;
+  }
+  // remember focus and half-typed text in the per-section add boxes
+  const act=document.activeElement; let fid=act&&act.dataset?act.dataset.fid:null, s0=null, s1=null;
+  if(fid&&root.contains(act)){try{s0=act.selectionStart;s1=act.selectionEnd;}catch(e){}} else fid=null;
+  const typed={}; $$('.add-row input',root).forEach(i=>{if(i.value)typed[i.dataset.fid]=i.value;});
+
+  const tops=kids(null), active=tops.filter(s=>!s.archived), archived=tops.filter(s=>s.archived);
+  rendering=true;
+  root.innerHTML=active.map(s=>sectionHTML(s,0)).join('')+
+    '<div class="below"><button class="btn" data-act="new-section">Add a section</button></div>'+
+    '<section class="archive'+(ui.archOpen?'':' collapsed')+(archived.length?'':' none-yet')+'">'+
+      '<div class="arch-head" data-act="arch-toggle">'+
+        '<button class="icon-btn caret" data-act="arch-toggle" aria-expanded="'+ui.archOpen+'" aria-label="'+(ui.archOpen?'Collapse':'Expand')+' archive">'+SVG_CARET+'</button>'+
+        '<h2>Archive</h2><span class="arch-n" aria-label="'+archived.length+' archived sections">'+archived.length+'</span>'+
+      '</div>'+
+      (ui.archOpen?'<div class="arch-body">'+archived.map(s=>sectionHTML(s,0)).join('')+'</div>':'')+
+    '</section>';
+  rendering=false;
+
+  Object.keys(typed).forEach(k=>{const i=$('[data-fid="'+k+'"]',root);if(i)i.value=typed[k];});
+  const want=ui.focus||(fid?{fid:fid,s0:s0,s1:s1}:null); ui.focus=null;
+  if(want){
+    const elx=$('[data-fid="'+want.fid+'"]',root);
+    if(elx){elx.focus({preventScroll:!want.scroll});
+      try{ if(want.select) elx.select(); else if(want.s0!=null) elx.setSelectionRange(want.s0,want.s1); else if(elx.setSelectionRange) elx.setSelectionRange(elx.value.length,elx.value.length);}catch(e){}
+    }
+  }
+  if(ui.flash){const r=$('.tw[data-tid="'+ui.flash+'"]',root);if(r)r.scrollIntoView({block:'nearest'});ui.flash=null;}
+}
+
+/* ================= list interactions ================= */
+const list=$('#list');
+
+function setStatus(tid,n){
+  const t=task(tid); if(!t||t.status===n) return;
+  if(ui.filter.size) ui.keep.add(tid); // stays in view until the filter is changed
+  commit(()=>{t.status=n;});
+}
+function addTask(text,sid){
+  const title=text.trim(); if(!title||!section(sid)) return false;
+  const t={id:uid(),title:title,status:1,section:sid,notes:'',links:[]};
+  if(ui.filter.size) ui.keep.add(t.id);
+  ui.flash=t.id;
+  commit(()=>{data.tasks.push(t);});
+  return true;
+}
+function deleteTask(tid){
+  const t=task(tid); if(!t) return;
+  if(ui.open===tid) ui.open=null;
+  commit(()=>{data.tasks=data.tasks.filter(x=>x.id!==tid);});
+  toast('Deleted "'+clip(t.title)+'"');
+}
+function newSection(parent){
+  const s={id:uid(),name:parent?'New sub-section':'New section',parent:parent||null,collapsed:false,archived:false};
+  ui.renaming=s.id; ui.focus={fid:'ren-'+s.id,select:true,scroll:true};
+  commit(()=>{
+    if(parent){section(parent).collapsed=false;data.sections.push(s);}
+    else{ // keep new sections ahead of archived ones in the saved order
+      const firstArch=data.sections.findIndex(x=>!x.parent&&x.archived);
+      if(firstArch<0) data.sections.push(s); else data.sections.splice(firstArch,0,s);
+    }
+  });
+}
+function deleteSection(sid){
+  const s=section(sid); if(!s) return;
+  const ids=deepIds(sid), n=data.tasks.filter(t=>ids.indexOf(t.section)>=0).length;
+  if(ui.open&&ids.indexOf((task(ui.open)||{}).section)>=0) ui.open=null;
+  commit(()=>{
+    data.tasks=data.tasks.filter(t=>ids.indexOf(t.section)<0);
+    data.sections=data.sections.filter(x=>ids.indexOf(x.id)<0);
+  });
+  toast('Deleted "'+clip(s.name)+'"'+(n?' and its '+n+(n===1?' task':' tasks'):''));
+}
+function setArchived(sid,on){
+  const s=section(sid); if(!s||s.parent) return;
+  if(on&&!ui.archOpen&&ui.open&&deepIds(sid).indexOf((task(ui.open)||{}).section)>=0) ui.open=null;
+  commit(()=>{s.archived=on;});
+  toast(on?'Moved "'+clip(s.name)+'" to the archive':'Restored "'+clip(s.name)+'"');
+}
+function sectionMenu(anchor,sid){
+  const s=section(sid);
+  const items=[{label:'Rename',act:()=>{ui.renaming=sid;ui.focus={fid:'ren-'+sid,select:true};renderList();}}];
+  if(!s.parent){
+    items.push({label:'Add a sub-section',act:()=>newSection(sid)});
+    items.push(s.archived?{label:'Restore',act:()=>setArchived(sid,false)}:{label:'Archive',act:()=>setArchived(sid,true)});
+  }
+  items.push({sep:true},{label:'Delete section',danger:true,act:()=>deleteSection(sid)});
+  menu(anchor,items);
+}
+
+list.addEventListener('click',e=>{
+  if(e.target.closest('.grip,.sgrip')) return;
+  const a=e.target.closest('[data-act]'); if(!a||!list.contains(a)) return;
+  const act=a.dataset.act;
+  const rowEl=a.closest('[data-tid]'), tid=rowEl?rowEl.dataset.tid:null;
+  const secEl=a.closest('[data-sid]'), sid=secEl?secEl.dataset.sid:null;
+  switch(act){
+    case 'toggle': commit(()=>{const s=section(sid);s.collapsed=!s.collapsed;},{undo:false}); break;
+    case 'arch-toggle': if(kids(null).some(s=>s.archived)||ui.archOpen){ui.archOpen=!ui.archOpen;
+        if(!ui.archOpen&&ui.open&&isArchived((task(ui.open)||{}).section)) ui.open=null; renderList();} break;
+    case 'sec-menu': e.stopPropagation(); sectionMenu(a,sid); break;
+    case 'pick': setStatus(tid,+a.dataset.s); break;
+    case 'open': ui.open=tid; ui.focus={fid:'title-'+tid}; renderList(); showOpen(); break;
+    case 'arrow': ui.open=(ui.open===tid?null:tid); renderList(); showOpen(); break;
+    case 'delete': deleteTask(tid); break;
+    case 'add-open': ui.adding.add(sid); ui.focus={fid:'add-'+sid}; renderList(); break;
+    case 'new-section': newSection(null); break;
+    case 'gh-retry': startUp(); break;
+    case 'gh-setup': openSetup(); break;
+  }
+});
+
+function showOpen(){const o=$('.tw.open',list); if(o) o.scrollIntoView({block:'nearest'});}
+let pendingAdd=null, pendingAddTimer=0, lastPointerDown=-1e9;
+document.addEventListener('pointerdown',()=>{lastPointerDown=performance.now();},true);
+document.addEventListener('click',()=>{if(pendingAdd)setTimeout(flushPendingAdd,0);});
+function flushPendingAdd(){
+  clearTimeout(pendingAddTimer);
+  const sid=pendingAdd; pendingAdd=null; if(!sid||!section(sid)) return;
+  const inp=$('[data-fid="add-'+sid+'"]',list);
+  if(!inp||document.activeElement===inp) return; // you went back into the box: leave it alone
+  const text=inp.value; inp.value=''; ui.adding.delete(sid);
+  if(!addTask(text,sid)) renderList();
+}
+function endRename(inp,save){
+  if(!inp.isConnected||inp.dataset.ended) return; inp.dataset.ended='1';
+  const secEl=inp.closest('[data-sid]'), s=secEl&&section(secEl.dataset.sid);
+  ui.renaming=null;
+  if(!s) return;
+  const v=inp.value.trim();
+  if(save&&v&&v!==s.name){pushUndo();s.name=v;markDirty();}
+  const h=document.createElement('h2');h.className='sec-name';h.textContent=s.name;
+  if(s.parent) h.style.background=ST[rollup(data.tasks.filter(t=>t.section===s.id))].bg;
+  inp.replaceWith(h);
+  const row=$('.add-row[data-sid="'+s.id+'"]');
+  if(row&&!row.contains(document.activeElement)){const keep=$('input',row), v0=keep?keep.value:'';row.outerHTML=addRowHTML(s);
+    const again=$('.add-row[data-sid="'+s.id+'"] input'); if(again) again.value=v0;}
+}
+/* Rebuilds a task's links from its rows, keeps the open buttons current, and makes sure a blank row is always waiting. */
+function syncLinks(tid){
+  const t=task(tid), wrap=$('.tw[data-tid="'+tid+'"] .links'); if(!t||!wrap) return;
+  const rows=$$('.link-row',wrap);
+  const read=r=>({url:$('[data-act="l-url"]',r).value.trim(),desc:$('[data-act="l-desc"]',r).value.trim()});
+  t.links=rows.map(read).filter(l=>l.url||l.desc);
+  rows.forEach(r=>{const a=$('.open-link',r), h=hrefFor(read(r).url);
+    if(h){a.href=h;a.removeAttribute('aria-disabled');}else{a.removeAttribute('href');a.setAttribute('aria-disabled','true');}});
+  const last=rows.length?read(rows[rows.length-1]):null;
+  if(!last||last.url||last.desc) wrap.insertAdjacentHTML('beforeend',linkRowHTML({url:'',desc:''},rows.length,tid));
+}
+
+list.addEventListener('keydown',e=>{
+  const a=e.target, act=a.dataset?a.dataset.act:null;
+  if(act==='add-input'){
+    if(e.key==='Enter'){e.preventDefault();const sid=a.closest('[data-sid]').dataset.sid;
+      if(a.value.trim()){const text=a.value;a.value='';ui.focus={fid:'add-'+sid};if(!addTask(text,sid)){a.value=text;ui.focus=null;}}}
+    else if(e.key==='Escape') a.value='';
+  }else if(act==='title'){
+    if(e.key==='Enter'){e.preventDefault();a.blur();}
+  }else if(act==='rename-input'){
+    if(e.key==='Enter'){e.preventDefault();endRename(a,true);}
+    else if(e.key==='Escape'){e.stopPropagation();endRename(a,false);}
+  }else if(act==='open'&&(e.key==='Enter'||e.key===' ')){
+    e.preventDefault();a.click();
+  }
+});
+list.addEventListener('focusout',e=>{
+  if(rendering) return;
+  const a=e.target, act=a.dataset?a.dataset.act:null;
+  if(act==='add-input'){
+    const row=a.closest('.add-row'), sec=row&&section(row.dataset.sid);
+    if(!sec||!a.isConnected) return;
+    if(!a.value.trim()){ui.adding.delete(sec.id);row.outerHTML=addRowHTML(sec);return;} // empty: fold back into the + button
+    // Text was typed: leaving the box adds the task. If a click caused this, wait until that click has been
+    // handled, because adding a row moves everything below it and the click would land on the wrong thing.
+    pendingAdd=sec.id; clearTimeout(pendingAddTimer);
+    if(performance.now()-lastPointerDown<300) pendingAddTimer=setTimeout(flushPendingAdd,450);
+    else flushPendingAdd();
+    return;
+  }
+  if(act==='rename-input') endRename(a,true);
+  else if(act==='title'){const row=a.closest('[data-tid]'), t=row&&task(row.dataset.tid);
+    if(t){ if(a.value.trim()) t.title=a.value.trim(); if(a.isConnected) a.value=t.title; }}
+});
+list.addEventListener('focusin',e=>{
+  const act=e.target.dataset?e.target.dataset.act:null;
+  if(act==='title'||act==='notes'||act==='l-url'||act==='l-desc') pushUndo();
+});
+list.addEventListener('input',e=>{
+  const a=e.target, act=a.dataset?a.dataset.act:null;
+  if(act!=='title'&&act!=='notes'&&act!=='l-url'&&act!=='l-desc') return;
+  const tid=a.closest('[data-tid]').dataset.tid, t=task(tid); if(!t) return;
+  if(act==='title'){ if(a.value.trim()) t.title=a.value.trim(); }
+  else if(act==='notes') t.notes=a.value;
+  else syncLinks(tid);
+  markDirty();
+});
+
+/* ---- dragging: tasks can go to any section; sections only reorder inside their own parent.
+   Done with pointer events instead of the browser's own drag-and-drop so the mouse wheel keeps working
+   mid-drag and the page can scroll itself when the pointer nears the top or bottom. ---- */
+let drag=null;
+const clearDrop=()=>$$('.drop-before,.drop-after,.drop-into,.sdrop-before,.sdrop-after',list).forEach(x=>x.classList.remove('drop-before','drop-after','drop-into','sdrop-before','sdrop-after'));
+function taskDropTarget(el,y){
+  const tw=el.closest('.tw');
+  if(tw){
+    if(tw.dataset.tid===drag.id) return null;
+    const other=task(tw.dataset.tid); if(!other) return null;
+    const r=tw.getBoundingClientRect(), after=y>r.top+r.height/2;
+    return {el:tw,cls:after?'drop-after':'drop-before',tid:other.id,after:after};
+  }
+  const spot=el.closest('.sec-head,.add-row');
+  if(spot) return {el:spot,cls:'drop-into',sid:spot.closest('.sec').dataset.sid};
+  return null;
+}
+function secDropTarget(el,y){
+  const s=section(drag.id); let node=el.closest('.sec');
+  while(node){
+    const o=section(node.dataset.sid);
+    if(o&&o.id!==s.id&&(o.parent||null)===(s.parent||null)&&!!o.archived===!!s.archived){
+      const r=node.getBoundingClientRect(), after=y>r.top+r.height/2;
+      return {el:node,cls:after?'sdrop-after':'sdrop-before',sid:o.id,after:after};
+    }
+    node=node.parentElement?node.parentElement.closest('.sec'):null;
+  }
+  return null;
+}
+function dragUpdate(){
+  if(!drag||!drag.started) return;
+  drag.ghost.style.transform='translate('+(drag.x+14)+'px,'+(drag.y+12)+'px)';
+  clearDrop(); drag.tgt=null;
+  const el=document.elementFromPoint(drag.x,drag.y);
+  if(!el||!list.contains(el)) return;
+  const tgt=drag.kind==='task'?taskDropTarget(el,drag.y):secDropTarget(el,drag.y);
+  if(tgt){tgt.el.classList.add(tgt.cls);drag.tgt=tgt;}
+}
+/* Auto-scroll: an 80px band under the pinned header and above the bottom edge. Speed ramps smoothly from
+   140 to 900 px per second the deeper the pointer goes, and stops the moment the pointer leaves the band.
+   A band only switches on once the pointer has moved toward it, so grabbing a row that already sits near an edge does not lurch. */
+const SCROLL_ZONE=80;
+function dragTick(now){
+  if(!drag||!drag.started) return;
+  const dt=drag.t?Math.min(50,now-drag.t)/1000:0; drag.t=now;
+  const top=topEl.getBoundingClientRect().bottom, bottom=window.innerHeight;
+  const inTop=drag.y<top+SCROLL_ZONE, inBottom=drag.y>bottom-SCROLL_ZONE;
+  if(!inTop&&!inBottom) drag.armed=true;
+  let v=0;
+  if(inTop&&(drag.armed||drag.y<drag.sy-6)){const r=Math.min(1,(top+SCROLL_ZONE-drag.y)/SCROLL_ZONE);v=-(140+760*r*r);}
+  else if(inBottom&&(drag.armed||drag.y>drag.sy+6)){const r=Math.min(1,(drag.y-(bottom-SCROLL_ZONE))/SCROLL_ZONE);v=140+760*r*r;}
+  if(v&&dt){const before=window.scrollY;window.scrollBy({top:v*dt,behavior:'instant'});if(window.scrollY!==before)dragUpdate();}
+  drag.raf=requestAnimationFrame(dragTick);
+}
+function startDrag(){
+  drag.started=true; closePop();
+  drag.host.classList.add('dragging'); document.documentElement.classList.add('is-dragging');
+  const g=document.createElement('div'); g.className='ghost';
+  g.textContent=drag.kind==='task'?(task(drag.id)||{}).title||'':(section(drag.id)||{}).name||'';
+  document.body.appendChild(g); drag.ghost=g;
+  drag.raf=requestAnimationFrame(dragTick);
+}
+function endDrag(drop){
+  if(!drag) return;
+  const d=drag; drag=null;
+  cancelAnimationFrame(d.raf); clearDrop();
+  if(d.ghost) d.ghost.remove();
+  if(d.host) d.host.classList.remove('dragging');
+  document.documentElement.classList.remove('is-dragging');
+  const tgt=d.tgt; if(!drop||!d.started||!tgt) return;
+  if(d.kind==='task'){
+    if(!task(d.id)) return;
+    if(ui.filter.size) ui.keep.add(d.id);
+    commit(()=>{
+      const i=data.tasks.findIndex(t=>t.id===d.id), t=data.tasks.splice(i,1)[0];
+      if(tgt.tid){const j=data.tasks.findIndex(x=>x.id===tgt.tid);t.section=data.tasks[j].section;data.tasks.splice(tgt.after?j+1:j,0,t);}
+      else{t.section=tgt.sid;section(tgt.sid).collapsed=false;data.tasks.push(t);}
+    });
+  }else{
+    if(!section(d.id)||!section(tgt.sid)) return;
+    commit(()=>{
+      const arr=data.sections, s=section(d.id); arr.splice(arr.indexOf(s),1);
+      const j=arr.indexOf(section(tgt.sid)); arr.splice(tgt.after?j+1:j,0,s);
+    });
+  }
+}
+list.addEventListener('pointerdown',e=>{
+  const g=e.target.closest('.grip,.sgrip'); if(!g||(e.pointerType==='mouse'&&e.button!==0)) return;
+  e.preventDefault();
+  const isTask=g.classList.contains('grip'), host=isTask?g.closest('.tw'):g.closest('.sec');
+  drag={kind:isTask?'task':'sec',id:isTask?host.dataset.tid:host.dataset.sid,host:host,pid:e.pointerId,
+        x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,started:false,armed:false,tgt:null,t:0,raf:0,ghost:null};
+  try{g.setPointerCapture(e.pointerId);}catch(_){}
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.pid) return;
+  drag.x=e.clientX; drag.y=e.clientY;
+  if(!drag.started){ if(Math.abs(drag.x-drag.sx)+Math.abs(drag.y-drag.sy)<5) return; startDrag(); }
+  dragUpdate();
+});
+document.addEventListener('pointerup',e=>{if(drag&&e.pointerId===drag.pid)endDrag(true);});
+document.addEventListener('pointercancel',e=>{if(drag&&e.pointerId===drag.pid)endDrag(false);});
+window.addEventListener('scroll',()=>{if(drag&&drag.started)dragUpdate();},{passive:true}); // wheel scrolling during a drag
+window.addEventListener('blur',()=>endDrag(false));
+
+/* ================= header interactions ================= */
+$('#listName').addEventListener('focus',pushUndo);
+$('#listName').addEventListener('input',e=>{data.title=e.target.value.trim()||'Work to-do';document.title=data.title;markDirty();});
+$('#listName').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
+$('#listName').addEventListener('blur',e=>{e.target.value=data.title;});
+
+$('#filter').addEventListener('click',e=>{
+  const x=e.target.closest('#clearFilter'), b=e.target.closest('[data-f]'); if(!x&&!b) return;
+  if(x) ui.filter.clear();
+  else{const n=+b.dataset.f, was=ui.filter.has(n); ui.filter.clear(); if(!was) ui.filter.add(n);} // one color at a time; pressing it again clears it
+  if(ui.open&&!isArchived(task(ui.open).section)&&ui.filter.size&&!ui.filter.has(task(ui.open).status)) ui.open=null;
+  commit(applyFilter,{undo:false});
+});
+$('#collapseAll').addEventListener('click',()=>commit(()=>data.sections.forEach(s=>{s.collapsed=true;}),{undo:false}));
+$('#expandAll').addEventListener('click',()=>commit(()=>data.sections.forEach(s=>{s.collapsed=false;}),{undo:false}));
+
+$('#moreBtn').addEventListener('click',e=>{
+  menu(e.currentTarget,[
+    {label:'Add a section',act:()=>newSection(null)},
+    {sep:true},
+    {label:'Download a backup copy',hint:'Saves everything as one .json file',act:()=>download('todo-backup-'+dateStamp()+'.json',serialize(),'application/json')},
+    {label:'Restore from a backup',hint:'Replaces what is on screen',act:()=>$('#importFile').click()},
+    {label:'Export to CSV for Excel',act:exportCSV},
+    {sep:true}
+  ].concat(connected?[{label:'Save now',act:()=>saveNow()}]:[],[{label:'GitHub connection',act:openSetup}]));
+});
+$('#importFile').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    const d=normalize(JSON.parse(await f.text()));
+    pushUndo(); data=d; isSample=false; ui.open=null; ui.filter.clear(); ui.keep.clear(); markDirty(); render();
+    toast('Restored from '+f.name);
+  }catch(err){toast('That file is not a to-do backup, so nothing was changed');}
+});
+function exportCSV(){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['Section','Task','Status','Notes','Links','Archived']];
+  orderedSections().forEach(s=>data.tasks.filter(t=>t.section===s.id).forEach(t=>
+    rows.push([sectionPath(t.section),t.title,ST[t.status].name,t.notes,
+      t.links.map(l=>l.desc?l.desc+': '+l.url:l.url).join('\n'),isArchived(t.section)?'Yes':''])));
+  download('todo-'+dateStamp()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv');
+}
+function download(name,text,type){
+  try{
+    const u=URL.createObjectURL(new Blob([text],{type:type})), a=document.createElement('a');
+    a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
+  }catch(e){toast('The download was blocked here. Open this page in Edge or Chrome on a computer.');}
+}
+
+/* ================= popover menu and toast ================= */
+const pop=$('#pop'); let popAnchor=null, popAt='';
+function menu(anchor,items){
+  closePop(); popAnchor=anchor; pop._items=items;
+  pop.innerHTML=items.map((it,i)=>it.sep?'<hr>':'<button role="menuitem" data-i="'+i+'"'+(it.danger?' class="danger"':'')+'>'+
+    '<span>'+esc(it.label)+'</span>'+(it.hint?'<small>'+esc(it.hint)+'</small>':'')+'</button>').join('');
+  pop.hidden=false;
+  const r=anchor.getBoundingClientRect(), w=pop.offsetWidth, h=pop.offsetHeight;
+  popAt=Math.round(r.top)+','+Math.round(r.left);
+  let left=Math.min(r.left,window.innerWidth-w-8), top=r.bottom+4;
+  if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-4);
+  pop.style.left=Math.max(8,left)+'px'; pop.style.top=top+'px';
+  const first=$('button',pop); if(first) first.focus({preventScroll:true});
+}
+function closePop(){if(!pop.hidden){pop.hidden=true;pop.innerHTML='';pop._items=null;}}
+pop.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-i]'); if(!b) return;
+  const it=pop._items[+b.dataset.i]; closePop(); if(it&&it.act) it.act();
+});
+document.addEventListener('mousedown',e=>{if(!pop.hidden&&!pop.contains(e.target)&&!(popAnchor&&popAnchor.contains(e.target)))closePop();});
+window.addEventListener('scroll',()=>{ // close only if the page really moved under the menu
+  if(pop.hidden) return;
+  if(popAnchor&&popAnchor.isConnected){const r=popAnchor.getBoundingClientRect();if(Math.round(r.top)+','+Math.round(r.left)===popAt) return;}
+  closePop();
+},true);
+window.addEventListener('resize',closePop);
+
+let toastTimer=0;
+function toast(msg){
+  const t=$('#toast'); clearTimeout(toastTimer);
+  t.textContent=msg; t.hidden=false;
+  toastTimer=setTimeout(()=>{t.hidden=true;},4000);
+}
+
+/* ================= clicking empty space closes the open task ================= */
+let downOnBlank=false;
+const isBlank=t=>!(t&&t.closest&&t.closest('.tw,button,input,textarea,select,a,.sec-head,.arch-head,#pop,#toast,.banner,dialog'));
+document.addEventListener('mousedown',e=>{downOnBlank=isBlank(e.target);},true);
+document.addEventListener('click',e=>{ if(ui.open&&downOnBlank&&isBlank(e.target)){ui.open=null;renderList();} });
+
+/* ================= keyboard: Escape closes task details, Ctrl+Z undoes ================= */
+document.addEventListener('keydown',e=>{
+  if($('dialog[open]')) return;
+  if(e.key==='Escape'){
+    if(drag){endDrag(false);return;}
+    if(!pop.hidden){const a=popAnchor;closePop();if(a&&a.isConnected)a.focus();return;}
+    if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body) document.activeElement.blur();
+    if(ui.open){ui.open=null;renderList();}
+    return;
+  }
+  const typing=e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]');
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'&&!typing&&!document.body.classList.contains('gated')){e.preventDefault();undo();}
+});
+
+/* ================= saving to GitHub ================= */
+function loadCfg(){try{const j=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(j&&j.owner&&j.repo&&j.token)return j;}catch(e){}return null;}
+function storeCfg(c){try{localStorage.setItem(LS_KEY,JSON.stringify(c));return true;}catch(e){return false;}}
+function clearCfg(){try{localStorage.removeItem(LS_KEY);}catch(e){}}
+/* The draft: this browser's copy of changes GitHub has not confirmed yet. baseSha is the saved version they were made on,
+   and sent is the text of a save that was on its way, so our own late-arriving save is not mistaken for someone else's change. */
+function storeDraft(){
+  if(!connected||!gh) return;
+  try{localStorage.setItem(LS_DRAFT,JSON.stringify({owner:gh.owner,repo:gh.repo,baseSha:lastSha,sent:sentText,text:serialize()}));}catch(e){}
+}
+function loadDraft(cfg){try{const d=JSON.parse(localStorage.getItem(LS_DRAFT)||'null');if(d&&d.owner===cfg.owner&&d.repo===cfg.repo&&typeof d.text==='string')return d;}catch(e){}return null;}
+function clearDraft(){try{localStorage.removeItem(LS_DRAFT);}catch(e){}}
+/* True when two saved files hold the same tasks, ignoring the save time and which sections are collapsed. */
+function sameData(a,b){
+  try{const strip=t=>{const o=JSON.parse(t);delete o.saved;(o.sections||[]).forEach(x=>{delete x.collapsed;});return JSON.stringify(o);};return strip(a)===strip(b);}
+  catch(e){return false;}
+}
+function storeCollapse(){try{const m={};data.sections.forEach(s=>{m[s.id]=s.collapsed?1:0;});localStorage.setItem(LS_COLLAPSE,JSON.stringify(m));}catch(e){}}
+function applyCollapse(){ // this browser's own open and closed states win over whatever the saved file says
+  let m={}; try{m=JSON.parse(localStorage.getItem(LS_COLLAPSE)||'{}')||{};}catch(e){}
+  data.sections.forEach(s=>{if(Object.prototype.hasOwnProperty.call(m,s.id))s.collapsed=!!m[s.id];});
+}
+function resetView(){undoStack=[];ui.open=null;ui.filter.clear();ui.keep.clear();ui.adding.clear();ui.archOpen=false;}
+
+const b64enc=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin);};
+const b64dec=b=>{const bin=atob(String(b||'').replace(/\s/g,''));const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder().decode(bytes);};
+function ghErr(kind,message){const e=new Error(message);e.kind=kind;return e;}
+function ghExplain(res){
+  if(res.status===401) return ghErr('auth','GitHub did not accept the access token. It may have expired or been mistyped.');
+  if(res.status===403||res.status===429){
+    if(res.headers.get('x-ratelimit-remaining')==='0'||res.status===429) return ghErr('rate','GitHub is asking this browser to slow down. Saving will be tried again shortly.');
+    return ghErr('perm','The access token is not allowed to do this. It needs Contents set to Read and write for this repository.');
+  }
+  if(res.status===404) return ghErr('notfound','GitHub could not find that repository, or the access token cannot see it.');
+  return ghErr('other','GitHub answered with an error ('+res.status+').');
+}
+async function ghFetch(cfg,path,opts){
+  const o=Object.assign({cache:'no-store'},opts||{});
+  o.headers=Object.assign({'Authorization':'Bearer '+cfg.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},o.headers||{});
+  try{return await fetch('https://api.github.com'+path,o);}
+  catch(e){throw ghErr('offline','GitHub could not be reached. Check the internet connection.');}
+}
+const repoPath=cfg=>'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo);
+/* Resolves to {text, sha}, or null when the repository is reachable but holds no data file yet. */
+async function ghRead(cfg){
+  const res=await ghFetch(cfg,repoPath(cfg)+'/contents/'+DATA_PATH);
+  if(res.status===404){
+    const r2=await ghFetch(cfg,repoPath(cfg));
+    if(r2.ok) return null;
+    throw ghExplain(r2);
+  }
+  if(!res.ok) throw ghExplain(res);
+  const j=await res.json();
+  let content=j.content;
+  if(!content&&j.size>0){ // large files come back without content; fetch the blob instead
+    const rb=await ghFetch(cfg,repoPath(cfg)+'/git/blobs/'+j.sha);
+    if(!rb.ok) throw ghExplain(rb);
+    content=(await rb.json()).content;
+  }
+  return {text:b64dec(content),sha:j.sha};
+}
+/* GitHub refuses the write when sha is not the file's current version, which is how a change made elsewhere is caught. */
+async function ghWrite(cfg,text,sha,keepalive){
+  const body={message:'Update to-do list',content:b64enc(text)}; if(sha) body.sha=sha;
+  const res=await ghFetch(cfg,repoPath(cfg)+'/contents/'+DATA_PATH,{method:'PUT',body:JSON.stringify(body),keepalive:!!keepalive,headers:{'Content-Type':'application/json'}});
+  if(res.status===409||res.status===422) throw ghErr('conflict','The saved file changed elsewhere.');
+  if(!res.ok) throw ghExplain(res);
+  return (await res.json()).content.sha;
+}
+
+function adopt(r){
+  data=normalize(JSON.parse(r.text)); lastText=r.text; lastSha=r.sha; applyCollapse(); clearDraft();
+  unsaved=false; unsavedReal=false; conflict=false; undoStack=[];
+  if(ui.open&&!task(ui.open)) ui.open=null;
+}
+/* Loads the tasks for a connection. Throws a readable error and changes nothing if it cannot. */
+async function connectWith(cfg){
+  const r=await ghRead(cfg);
+  let d=null;
+  if(r){try{d=normalize(JSON.parse(r.text));}catch(e){throw ghErr('badfile',DATA_PATH+' in that repository is not a to-do data file, so it was left alone.');}}
+  // changes this browser made that GitHub had not confirmed when the page was last closed or refreshed
+  let mine=null, mineClashes=false; const draft=loadDraft(cfg);
+  if(draft){
+    let dd=null; try{dd=normalize(JSON.parse(draft.text));}catch(e){}
+    if(!dd||(r&&sameData(draft.text,r.text))) clearDraft();                                             // already saved after all
+    else if(!r||r.sha===draft.baseSha||(draft.sent&&sameData(draft.sent,r.text))) mine=dd;              // nothing else changed since: carry on
+    else{mine=dd;mineClashes=true;}                                                                     // the saved file was changed elsewhere too
+  }
+  clearTimeout(saveTimer); clearTimeout(retryTimer);
+  if(d){data=d; lastText=r.text; lastSha=r.sha; unsaved=false; unsavedReal=false;}
+  else{ // no data file yet: start blank (or keep a list you made or restored) and create the file
+    if(isSample) data=blankData();
+    lastText=''; lastSha=''; unsaved=true; unsavedReal=true;
+  }
+  if(mine){data=mine; unsaved=true; unsavedReal=true;}
+  applyCollapse();
+  gh=cfg; connected=true; isSample=false; touched=false; conflict=mineClashes; saveError=''; saveErrorKind=''; offline=false; loadError=null; sentText=''; resetView();
+  storeCollapse();
+  if(unsaved&&!conflict) saveNow();
+}
+async function startUp(){
+  const cfg=loadCfg(); if(!cfg||inFrame) return;
+  gh=cfg; loading=true; loadError=null; render();
+  try{await connectWith(cfg);}catch(e){loadError=e;}
+  loading=false; render();
+}
+function disconnect(){
+  clearTimeout(saveTimer); clearTimeout(retryTimer); clearCfg(); clearDraft();
+  gh=null; connected=false; conflict=false; saveError=''; saveErrorKind=''; offline=false; loadError=null; render();
+  toast('Disconnected. What is on screen is no longer being saved.');
+}
+async function saveNow(force,keepalive){
+  if(!connected) return;
+  if(saving){pending=true;return;}
+  if(conflict&&force!==true) return;
+  clearTimeout(saveTimer); clearTimeout(retryTimer);
+  saving=true; renderFile();
+  const seq=dirtySeq, text=serialize();
+  sentText=text; if(unsaved) storeDraft();
+  const landed=sha=>{lastSha=sha;lastText=text;saveError='';saveErrorKind='';offline=false;conflict=false;lastSavedAt=new Date();sentText='';
+    if(dirtySeq===seq){unsaved=false;unsavedReal=false;clearDraft();}else{pending=true;storeDraft();}};
+  try{
+    landed(await ghWrite(gh,text,lastSha,keepalive===true));
+  }catch(e){
+    if(e.kind==='conflict'){
+      try{
+        const r=await ghRead(gh);
+        if(!r){lastSha='';pending=true;}                         // the file was deleted: write it again
+        else if(sameData(r.text,text)) landed(r.sha);            // GitHub already holds exactly this (an earlier save of ours landed late)
+        else if(r.text===lastText){lastSha=r.sha;pending=true;}  // same content, newer version id: just retry
+        else if(!unsavedReal){adopt(r);render();toast('Loaded a newer version of your tasks');}
+        else{conflict=true;toast('Your tasks were changed somewhere else. See the notice at the top.');}
+      }catch(e2){offline=true;retryTimer=setTimeout(saveNow,15000);}
+    }else if(e.kind==='offline'||e.kind==='rate'){offline=true;retryTimer=setTimeout(saveNow,15000);}
+    else{saveError=e.message;saveErrorKind=e.kind;toast('Could not save. See the notice at the top.');}
+  }
+  saving=false; renderFile();
+  if(pending){pending=false;if(!saveError&&!conflict&&!offline)saveNow();}
+}
+/* Looks for changes made on another computer whenever you come back to this window. */
+async function checkRemote(now){
+  if(!connected||saving||conflict||loading) return;
+  if(now!==true&&Date.now()-lastCheck<15000) return;
+  lastCheck=Date.now();
+  try{
+    const r=await ghRead(gh);
+    if(offline){offline=false;renderFile();if(unsaved)saveNow();}
+    if(!r||r.sha===lastSha||saving) return;
+    if(r.text===lastText){lastSha=r.sha;return;}
+    if(unsavedReal&&sameData(r.text,serialize())){lastSha=r.sha;lastText=r.text;return;} // our own save, seen from the other side
+    if(unsavedReal){conflict=true;renderFile();toast('Your tasks were changed somewhere else. See the notice at the top.');return;}
+    adopt(r); render(); toast('Loaded a newer version of your tasks');
+  }catch(e){}
+}
+window.addEventListener('focus',()=>checkRemote());
+window.addEventListener('online',()=>{if(connected&&unsaved)saveNow();});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(connected&&unsaved&&!saving&&!conflict)saveNow(false,true);} // last-moment save when the tab is hidden or closed
+  else checkRemote();
+});
+window.addEventListener('beforeunload',e=>{
+  // warn while anything has not reached GitHub yet (the draft keeps it for this browser, but another computer would not see it)
+  if((connected&&(unsavedReal||saving||conflict||saveError))||(!connected&&!isSample&&touched)){e.preventDefault();e.returnValue='';}
+});
+
+function renderFile(){
+  const st=$('#fileState'), btn=$('#fileBtn'), ban=$('#banner');
+  st.className='file-state'; let b='';
+  const B=(cls,text,buttons)=>'<div class="banner '+cls+'"><p>'+text+'</p>'+buttons.map(x=>'<button class="btn'+(x[2]?' primary':'')+'" data-ban="'+x[0]+'">'+esc(x[1])+'</button>').join('')+'</div>';
+  btn.hidden=connected||loading||!!loadError||inFrame;
+  if(connected){
+    if(conflict){st.classList.add('warn');st.textContent='changed elsewhere';
+      b=B('warn','Your tasks were changed somewhere else, for example on your other computer. Pick which version to keep.',[['load','Load the saved version',1],['overwrite','Keep this window\'s version']]);}
+    else if(saveError){st.classList.add('bad');st.textContent='not saved';
+      b=B('bad','Could not save: '+esc(saveError),saveErrorKind==='auth'||saveErrorKind==='perm'||saveErrorKind==='notfound'?[['setup','Update the connection',1],['backup','Download a backup copy']]:[['retry','Try again',1],['backup','Download a backup copy']]);}
+    else if(offline){st.classList.add('warn');st.textContent='offline, not saved';
+      b=B('warn','GitHub cannot be reached right now. Your changes stay on this screen and saving is retried automatically.',[['retry','Try now',1]]);}
+    else if(saving||unsavedReal) st.textContent='saving';
+    else st.textContent='saved'+(lastSavedAt?' '+timeStr(lastSavedAt):'');
+  }else if(loading){ st.textContent='Loading';
+  }else if(loadError){ st.textContent='Not connected';
+  }else if(inFrame){
+    st.textContent='Preview only';
+    b=B('warn','These are example tasks. This preview cannot connect to GitHub. Open the page at your own web address to load and save your tasks.',[]);
+  }else{
+    st.textContent=touched&&!isSample?'Changes not saved':'Not connected';
+    b=isSample
+      ?B('','These are example tasks. Connect to GitHub to load and save your own.',[['setup','Connect to GitHub',1]])
+      :B('warn','Nothing here is being saved. Connect to GitHub to keep your changes.',[['setup','Connect to GitHub',1],['backup','Download a backup copy']]);
+  }
+  if(ban.dataset.h!==b){ban.innerHTML=b;ban.dataset.h=b;}
+}
+$('#banner').addEventListener('click',async e=>{
+  const x=e.target.closest('[data-ban]'); if(!x) return;
+  const k=x.dataset.ban;
+  if(k==='setup') openSetup();
+  else if(k==='retry'){offline=false;saveError='';saveErrorKind='';saveNow();}
+  else if(k==='backup') download('todo-backup-'+dateStamp()+'.json',serialize(),'application/json');
+  else if(k==='overwrite'||k==='load'){
+    x.disabled=true;
+    try{
+      const r=await ghRead(gh);
+      if(k==='load'&&r){adopt(r);render();toast('Loaded the saved version');}
+      else{lastSha=r?r.sha:'';conflict=false;await saveNow(true);}
+    }catch(err){toast(err.message);x.disabled=false;}
+  }
+});
+$('#fileBtn').addEventListener('click',openSetup);
+
+/* the connection box */
+const ghDlg=$('#ghDlg');
+function openSetup(){
+  const cur=gh||loadCfg()||{};
+  $('#ghOwner').value=cur.owner||''; $('#ghRepo').value=cur.repo||''; $('#ghToken').value=cur.token||'';
+  $('#ghErr').textContent=''; $('#ghForget').hidden=!(connected||loadCfg()); $('#ghGo').disabled=false; $('#ghGo').textContent=connected?'Save and reload':'Connect';
+  ghDlg.showModal(); (!$('#ghOwner').value?$('#ghOwner'):$('#ghToken').value?$('#ghGo'):$('#ghToken')).focus();
+}
+$('#ghCancel').addEventListener('click',()=>ghDlg.close());
+$('#ghForget').addEventListener('click',()=>{ghDlg.close();disconnect();});
+$('#ghGo').addEventListener('click',async()=>{
+  const cfg={owner:$('#ghOwner').value.trim(),repo:$('#ghRepo').value.trim(),token:$('#ghToken').value.trim()};
+  const err=$('#ghErr'), go=$('#ghGo');
+  if(!cfg.owner||!cfg.repo||!cfg.token){err.textContent='Fill in all three boxes.';return;}
+  if(connected&&(unsavedReal||conflict)){err.textContent='There are changes that have not been saved yet. Wait for "saved" at the top, then try again.';return;}
+  err.textContent=''; go.disabled=true; go.textContent='Connecting';
+  try{
+    await connectWith(cfg);
+    const kept=storeCfg(cfg);
+    ghDlg.close(); render();
+    toast(kept?'Connected. Changes are saved to GitHub automatically.':'Connected, but this browser would not keep the token, so it will ask again next time.');
+  }catch(e){err.textContent=e.message;go.disabled=false;go.textContent=connected?'Save and reload':'Connect';}
+});
+ghDlg.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();$('#ghGo').click();}});
+
+/* ================= start ================= */
+const topEl=$('#top');
+const setTopH=()=>document.documentElement.style.setProperty('--top-h',topEl.offsetHeight+'px');
+if('ResizeObserver' in window) new ResizeObserver(setTopH).observe(topEl);
+window.addEventListener('resize',setTopH);
+
+data=sampleData();
+render(); setTopH();
+startUp();
+
+/* small hook so the tool can be checked automatically */
+window.__todo={get data(){return data;},normalize:normalize,rollup:rollup,hrefFor:hrefFor,check:()=>checkRemote(true)};
+})();
+</script>
+</body>
+</html>
