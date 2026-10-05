@@ -156,6 +156,10 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
 .gf{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;font-size:12.5px;font-weight:600}
 .gf input{height:32px;border:1px solid var(--rule);border-radius:3px;padding:0 8px;font-size:14px;font-weight:400;background:#fff}
 .gf input:focus{outline:none;border-color:var(--accent)}
+.arow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-top:1px solid var(--rule)}
+.arow:first-child{border-top:0}
+.arow span{min-width:0;overflow-wrap:anywhere}
+#archBody{margin:8px 0 14px}
 .gh-err{color:var(--bad);font-size:13.5px;min-height:20px;margin:0 0 8px}
 .dlg-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .dlg-foot span{display:flex;gap:8px;margin-left:auto}
@@ -211,6 +215,12 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
 <div id="pop" role="menu" hidden></div>
 <div id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<dialog id="archDlg" aria-labelledby="archTitle">
+  <h2 id="archTitle">Archived</h2>
+  <div id="archBody"></div>
+  <div class="dlg-foot"><span><button class="btn primary" id="archClose">Close</button></span></div>
+</dialog>
 
 <dialog id="ghDlg" aria-labelledby="ghTitle">
   <h2 id="ghTitle">Connect to GitHub</h2>
@@ -349,7 +359,6 @@ function normalize(o){
     if(n>=50){s.parent=null;return;}
     if(top&&top!==s.parent) s.parent=top;
   });
-  d.sections.forEach(s=>{ if(s.parent) s.archived=false; });
   const oldStatus={};
   if(Array.isArray(o.statuses)) o.statuses.forEach(st=>{ if(st&&st.id!=null) oldStatus[st.id]=st.done?4:({todo:1,doing:2,waiting:2,blocked:3,done:4}[st.id]||1); });
   const firstSec=()=>{ if(!d.sections.length) d.sections.push({id:uid(),name:'Inbox',parent:null,collapsed:false,archived:false}); return d.sections[0].id; };
@@ -370,9 +379,13 @@ const task=id=>data.tasks.find(t=>t.id===id);
 const section=id=>data.sections.find(s=>s.id===id);
 const kids=pid=>data.sections.filter(s=>(s.parent||null)===pid);
 const rootOf=sid=>{const s=section(sid);return s&&s.parent?s.parent:sid;};
-const isArchived=sid=>{const r=section(rootOf(sid));return !!(r&&r.archived);};
-const deepIds=sid=>[sid].concat(kids(sid).map(k=>k.id));
-const deepTasks=sid=>{const ids=deepIds(sid);return data.tasks.filter(t=>ids.indexOf(t.section)>=0);};
+/* archived = the section itself is archived, or it sits inside an archived top-level section */
+const isArchived=sid=>{const x=section(sid);if(!x)return false;if(x.archived)return true;const r=x.parent?section(x.parent):null;return !!(r&&r.archived);};
+const liveKids=pid=>kids(pid).filter(k=>!k.archived);           // sub-sections that are showing
+const hiddenKids=pid=>kids(pid).filter(k=>k.archived);          // sub-sections archived inside their section
+const deepIds=sid=>[sid].concat(kids(sid).map(k=>k.id));        // everything, archived sub-sections included (used when deleting)
+/* the tasks that count toward a section's color, count bar and filter: its own plus its showing sub-sections' */
+const deepTasks=sid=>{const ids=[sid].concat(liveKids(sid).map(k=>k.id));return data.tasks.filter(t=>ids.indexOf(t.section)>=0);};
 function sectionPath(sid){const s=section(sid);if(!s)return'';return s.parent?section(s.parent).name+' / '+s.name:s.name;}
 function orderedSections(){const out=[];kids(null).forEach(s=>{out.push(s);kids(s.id).forEach(k=>out.push(k));});return out;}
 /* red if any red, else orange if any orange, else green if every task is green, else gray */
@@ -505,7 +518,7 @@ function sectionHTML(s,depth){
       '<span class="sgrip" title="Drag to reorder" aria-hidden="true">'+SVG_MOVE+'</span>'+
     '</div>'+
     (s.collapsed?'':'<div class="sec-body">'+
-      (depth===0?kids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+ // sub-sections first, then the section's own tasks and its + button
+      (depth===0?liveKids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+ // sub-sections first, then the section's own tasks and its + button
       vis.map(taskHTML).join('')+
       (hidden?'<p class="none">'+hidden+(hidden===1?' task':' tasks')+' here hidden by the filter</p>':'')+
       addRowHTML(s)+
@@ -607,10 +620,31 @@ function sectionMenu(anchor,sid){
   if(!s.parent){
     items.push({label:'Add a sub-section',act:()=>newSection(sid)});
     items.push(s.archived?{label:'Restore',act:()=>setArchived(sid,false)}:{label:'Archive',act:()=>setArchived(sid,true)});
+    const n=hiddenKids(sid).length;
+    if(n) items.push({label:'Show archived ('+n+')',act:()=>openArchived(sid)});
+  }else{
+    items.push({label:'Archive',act:()=>archiveSub(sid,true)});
   }
   items.push({sep:true},{label:'Delete section',danger:true,act:()=>deleteSection(sid)});
   menu(anchor,items);
 }
+/* A sub-section is archived in place: it stays inside its section in the saved data and is simply not shown. */
+function archiveSub(sid,on){
+  const s=section(sid); if(!s||!s.parent) return;
+  if(on&&ui.open&&(task(ui.open)||{}).section===sid) ui.open=null;
+  commit(()=>{s.archived=on;});
+  if(on) toast('Archived "'+clip(s.name)+'"');
+}
+const archDlg=$('#archDlg'); let archFor=null;
+function renderArchived(){
+  const sec=section(archFor), subs=sec?hiddenKids(archFor):[];
+  if(!subs.length){if(archDlg.open)archDlg.close();return;}
+  $('#archTitle').textContent='Archived in '+sec.name;
+  $('#archBody').innerHTML=subs.map(k=>'<div class="arow"><span>'+esc(k.name)+'</span><button class="btn sm" data-un="'+k.id+'">Unarchive</button></div>').join('');
+}
+function openArchived(sid){archFor=sid;renderArchived();if(hiddenKids(sid).length&&!archDlg.open)archDlg.showModal();}
+$('#archBody').addEventListener('click',e=>{const b=e.target.closest('[data-un]');if(!b)return;archiveSub(b.dataset.un,false);renderArchived();});
+$('#archClose').addEventListener('click',()=>archDlg.close());
 
 list.addEventListener('click',e=>{
   if(e.target.closest('.grip,.sgrip')) return;
