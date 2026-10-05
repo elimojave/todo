@@ -264,9 +264,9 @@ let isSample=true, touched=false;
 
 /* GitHub connection. The page is public, so it holds no tasks and no token: the token lives only in this browser's storage. */
 let inFrame=false; try{inFrame=window.self!==window.top;}catch(e){inFrame=true;}
-const GH_DEFAULTS={owner:'elimojave',repo:'todo-list'};
 const DATA_PATH='todo-data.json';
 const LS_KEY='work-todo-github';
+const LS_COLLAPSE='work-todo-collapse';
 let gh=null, connected=false, loading=false, loadError=null,
     lastSha='', lastText='', saveTimer=0, retryTimer=0, saving=false, pending=false, dirtySeq=0,
     unsaved=false, unsavedReal=false, conflict=false, saveError='', saveErrorKind='', offline=false, lastSavedAt=null, lastCheck=0;
@@ -388,12 +388,13 @@ function pushUndo(){
   if(undoStack[undoStack.length-1]===snap) return;
   undoStack.push(snap); if(undoStack.length>40) undoStack.shift();
 }
-/* Edits are saved a couple of seconds after you stop. Collapsing and expanding alone waits longer
-   and rides along with the next real edit, so the saved history is not filled with them. */
+/* Edits are saved to GitHub a couple of seconds after you stop. Which sections are collapsed is remembered
+   by this browser straight away, so it survives a refresh or closing the page without filling the saved history. */
 function markDirty(viewOnly){
-  if(viewOnly!==true){touched=true;unsavedReal=true;}
-  unsaved=true; dirtySeq++;
-  if(connected&&!conflict){clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,unsavedReal?2500:30000);}
+  if(connected) storeCollapse();
+  if(viewOnly===true){renderFile();return;} // collapsing alone is kept by this browser and rides along with the next real save
+  touched=true; unsavedReal=true; unsaved=true; dirtySeq++;
+  if(connected&&!conflict){clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,2500);}
   renderFile();
 }
 function commit(fn,opts){
@@ -631,6 +632,17 @@ list.addEventListener('click',e=>{
 });
 
 function showOpen(){const o=$('.tw.open',list); if(o) o.scrollIntoView({block:'nearest'});}
+let pendingAdd=null, pendingAddTimer=0, lastPointerDown=-1e9;
+document.addEventListener('pointerdown',()=>{lastPointerDown=performance.now();},true);
+document.addEventListener('click',()=>{if(pendingAdd)setTimeout(flushPendingAdd,0);});
+function flushPendingAdd(){
+  clearTimeout(pendingAddTimer);
+  const sid=pendingAdd; pendingAdd=null; if(!sid||!section(sid)) return;
+  const inp=$('[data-fid="add-'+sid+'"]',list);
+  if(!inp||document.activeElement===inp) return; // you went back into the box: leave it alone
+  const text=inp.value; inp.value=''; ui.adding.delete(sid);
+  if(!addTask(text,sid)) renderList();
+}
 function endRename(inp,save){
   if(!inp.isConnected||inp.dataset.ended) return; inp.dataset.ended='1';
   const secEl=inp.closest('[data-sid]'), s=secEl&&section(secEl.dataset.sid);
@@ -675,9 +687,15 @@ list.addEventListener('keydown',e=>{
 list.addEventListener('focusout',e=>{
   if(rendering) return;
   const a=e.target, act=a.dataset?a.dataset.act:null;
-  if(act==='add-input'){ // an empty add box folds back into the + button
+  if(act==='add-input'){
     const row=a.closest('.add-row'), sec=row&&section(row.dataset.sid);
-    if(sec&&!a.value.trim()&&a.isConnected){ui.adding.delete(sec.id);row.outerHTML=addRowHTML(sec);}
+    if(!sec||!a.isConnected) return;
+    if(!a.value.trim()){ui.adding.delete(sec.id);row.outerHTML=addRowHTML(sec);return;} // empty: fold back into the + button
+    // Text was typed: leaving the box adds the task. If a click caused this, wait until that click has been
+    // handled, because adding a row moves everything below it and the click would land on the wrong thing.
+    pendingAdd=sec.id; clearTimeout(pendingAddTimer);
+    if(performance.now()-lastPointerDown<300) pendingAddTimer=setTimeout(flushPendingAdd,450);
+    else flushPendingAdd();
     return;
   }
   if(act==='rename-input') endRename(a,true);
@@ -910,6 +928,11 @@ document.addEventListener('keydown',e=>{
 function loadCfg(){try{const j=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(j&&j.owner&&j.repo&&j.token)return j;}catch(e){}return null;}
 function storeCfg(c){try{localStorage.setItem(LS_KEY,JSON.stringify(c));return true;}catch(e){return false;}}
 function clearCfg(){try{localStorage.removeItem(LS_KEY);}catch(e){}}
+function storeCollapse(){try{const m={};data.sections.forEach(s=>{m[s.id]=s.collapsed?1:0;});localStorage.setItem(LS_COLLAPSE,JSON.stringify(m));}catch(e){}}
+function applyCollapse(){ // this browser's own open and closed states win over whatever the saved file says
+  let m={}; try{m=JSON.parse(localStorage.getItem(LS_COLLAPSE)||'{}')||{};}catch(e){}
+  data.sections.forEach(s=>{if(Object.prototype.hasOwnProperty.call(m,s.id))s.collapsed=!!m[s.id];});
+}
 function resetView(){undoStack=[];ui.open=null;ui.filter.clear();ui.keep.clear();ui.adding.clear();ui.archOpen=false;}
 
 const b64enc=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin);};
@@ -959,7 +982,7 @@ async function ghWrite(cfg,text,sha,keepalive){
 }
 
 function adopt(r){
-  data=normalize(JSON.parse(r.text)); lastText=r.text; lastSha=r.sha;
+  data=normalize(JSON.parse(r.text)); lastText=r.text; lastSha=r.sha; applyCollapse();
   unsaved=false; unsavedReal=false; conflict=false; undoStack=[];
   if(ui.open&&!task(ui.open)) ui.open=null;
 }
@@ -969,12 +992,13 @@ async function connectWith(cfg){
   let d=null;
   if(r){try{d=normalize(JSON.parse(r.text));}catch(e){throw ghErr('badfile',DATA_PATH+' in that repository is not a to-do data file, so it was left alone.');}}
   clearTimeout(saveTimer); clearTimeout(retryTimer);
-  if(d){data=d; lastText=r.text; lastSha=r.sha; unsaved=false; unsavedReal=false;}
+  if(d){data=d; lastText=r.text; lastSha=r.sha; unsaved=false; unsavedReal=false; applyCollapse();}
   else{ // no data file yet: start blank (or keep a list you made or restored) and create the file
     if(isSample) data=blankData();
     lastText=''; lastSha=''; unsaved=true; unsavedReal=true;
   }
   gh=cfg; connected=true; isSample=false; touched=false; conflict=false; saveError=''; saveErrorKind=''; offline=false; loadError=null; resetView();
+  storeCollapse();
   if(unsaved) saveNow();
 }
 async function startUp(){
@@ -1085,10 +1109,10 @@ $('#fileBtn').addEventListener('click',openSetup);
 /* the connection box */
 const ghDlg=$('#ghDlg');
 function openSetup(){
-  const cur=gh||loadCfg()||GH_DEFAULTS;
+  const cur=gh||loadCfg()||{};
   $('#ghOwner').value=cur.owner||''; $('#ghRepo').value=cur.repo||''; $('#ghToken').value=cur.token||'';
   $('#ghErr').textContent=''; $('#ghForget').hidden=!(connected||loadCfg()); $('#ghGo').disabled=false; $('#ghGo').textContent=connected?'Save and reload':'Connect';
-  ghDlg.showModal(); ($('#ghToken').value?$('#ghGo'):$('#ghToken')).focus();
+  ghDlg.showModal(); (!$('#ghOwner').value?$('#ghOwner'):$('#ghToken').value?$('#ghGo'):$('#ghToken')).focus();
 }
 $('#ghCancel').addEventListener('click',()=>ghDlg.close());
 $('#ghForget').addEventListener('click',()=>{ghDlg.close();disconnect();});
