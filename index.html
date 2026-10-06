@@ -36,7 +36,7 @@ button{cursor:pointer}
 .list-name:hover{border-bottom-color:var(--rule)}
 .list-name:focus{outline:none;border-bottom:1px solid var(--accent)}
 .filter{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 2px}
-.filter svg{display:block;margin-right:1px}
+.filter svg{display:block}
 .xbtn{width:18px;height:18px;flex:none;border:0;border-radius:50%;background:transparent;padding:0;font:700 15px/18px var(--body);color:var(--ink)}
 .xbtn:hover{background:rgba(24,38,47,.14)}
 .dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--c);background:transparent;padding:0;flex:none}
@@ -50,6 +50,16 @@ button{cursor:pointer}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.danger{color:var(--bad)}
 .btn.sm{height:26px;font-size:13px;padding:0 9px}
+.btn.ico{width:30px;padding:0;display:grid;place-items:center}
+.btn.ico svg{display:block}
+.btn.ico[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+#filterPop{position:fixed;z-index:40;background:var(--raised);border:1px solid var(--ink);border-radius:4px;padding:8px 12px;display:flex;flex-direction:column;gap:8px;
+  font-size:13.5px;box-shadow:3px 3px 0 rgba(24,38,47,.22)}
+.frow{display:flex;align-items:center;gap:7px;min-height:28px}
+.frow label{display:flex;align-items:center;gap:7px}
+#filterPop input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent)}
+#daysN{width:62px;height:28px;border:1px solid var(--rule);border-radius:3px;padding:0 6px;font-size:14px}
+#daysN:focus{outline:none;border-color:var(--accent)}
 .icon-btn{width:26px;height:26px;flex:none;border:0;background:transparent;border-radius:4px;display:grid;place-items:center;padding:0}
 .icon-btn:hover{background:rgba(24,38,47,.12)}
 .banner{margin-top:8px;padding:7px 12px;border-left:4px solid var(--accent);background:var(--raised);
@@ -60,7 +70,7 @@ button{cursor:pointer}
 /* ---------- sections ---------- */
 main{padding:4px 0 96px}
 .sec{margin-top:8px}
-.sec .sec{margin:5px 0 5px 16px}
+.sec .sec{margin:5px 0 5px 32px}
 .sec-head{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 3px 0 4px;border-radius:4px;border:1px solid rgba(24,38,47,.2);
   cursor:pointer;user-select:none;-webkit-user-select:none}
 .d1>.sec-head{min-height:24px;background:transparent;border:0;border-bottom:1.5px solid var(--muted);border-radius:0;padding-left:0}
@@ -121,6 +131,13 @@ html.is-dragging,html.is-dragging *{cursor:grabbing!important;user-select:none!i
 .open-link{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--rule);border-radius:3px;background:#fff;color:var(--accent);text-decoration:none;font-weight:700}
 .open-link:hover{border-color:var(--ink)}
 .open-link[aria-disabled="true"]{visibility:hidden}
+.done-row{display:flex;align-items:center;gap:6px}
+.done-row input{width:150px;flex:none}
+.done-row.off{opacity:.45}
+.rev-row{display:flex;align-items:center;gap:12px}
+.rev{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#111;flex:none}
+.detail .rev input{width:16px;height:16px;padding:0;border:0;margin:0;accent-color:var(--accent)}
+.detail .rev-note{max-width:340px;height:26px;font-size:13px}
 .d-foot{display:flex;justify-content:flex-end}
 
 .add-row{padding:1px 56px 1px 81px;min-height:28px;display:flex;align-items:center}
@@ -132,7 +149,7 @@ html.is-dragging,html.is-dragging *{cursor:grabbing!important;user-select:none!i
 .plus span{opacity:0;font-size:13px}
 .plus:hover,.plus:focus-visible{color:var(--ink)}
 .plus:hover span,.plus:focus-visible span{opacity:1}
-.below{margin-top:14px}
+.nosec{margin:28px 0 0;color:var(--muted)}
 
 /* ---------- archive ---------- */
 .archive{margin-top:18px}
@@ -180,7 +197,7 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
   .file-state{display:none}
   .detail{padding:8px 8px 8px 10px}
   .add-row{padding:1px 8px 1px 81px}
-  .sec .sec{margin-left:8px}
+  .sec .sec{margin-left:16px}
   .mix{width:96px}
   .link-row{grid-template-columns:minmax(0,1fr) 28px}
   .link-row input:nth-child(2){grid-row:2}
@@ -196,10 +213,16 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
       <input id="listName" class="list-name" aria-label="List name" spellcheck="false">
       <div class="filter" id="filter" role="group" aria-label="Filter by color">
         <button id="clearFilter" class="xbtn" aria-label="Clear the filter" title="Clear the filter" style="visibility:hidden">&#215;</button>
-        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M1 2h13L9 8v5l-3-1.6V8z" fill="currentColor"/></svg>
+        <button id="moreFilters" class="btn sm ico" aria-pressed="false" aria-haspopup="true" aria-label="More filters" title="More filters">
+          <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M1 2h13L9 8v5l-3-1.6V8z" fill="currentColor"/></svg>
+        </button>
       </div>
-      <button id="collapseAll" class="btn sm hbtn">Collapse all</button>
-      <button id="expandAll" class="btn sm hbtn">Expand all</button>
+      <button id="collapseAll" class="btn sm hbtn ico" aria-label="Collapse all" title="Collapse all">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l4 3.5 4-3.5M4 13.5l4-3.5 4 3.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
+      <button id="expandAll" class="btn sm hbtn ico" aria-label="Expand all" title="Expand all">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4-3.5 4 3.5M4 10l4 3.5 4-3.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
       <span id="fileState" class="file-state" aria-live="polite"></span>
       <button id="fileBtn" class="btn primary">Connect to GitHub</button>
       <button id="moreBtn" class="icon-btn" aria-label="Settings" title="Settings">
@@ -213,6 +236,11 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
 <main class="wrap" id="list"></main>
 
 <div id="pop" role="menu" hidden></div>
+<div id="filterPop" role="group" aria-label="More filters" hidden>
+  <label class="frow"><input type="checkbox" id="fReview"> Review</label>
+  <div class="frow"><label><input type="checkbox" id="fDays"> Completed in the last</label>
+    <input id="daysN" type="number" min="0" max="3650" step="1" value="7" inputmode="numeric" aria-label="Number of days"><span>days</span></div>
+</div>
 <div id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
@@ -246,6 +274,7 @@ const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
 const dateStamp=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const daysAgo=n=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const timeStr=d=>d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 const clip=s=>s.length>34?s.slice(0,32)+'\u2026':s;
 
@@ -268,7 +297,7 @@ const STATUSES=[1,2,3,4];
 /* ================= state ================= */
 let data;
 let undoStack=[];
-const ui={open:null,renaming:null,flash:null,focus:null,filter:new Set(),keep:new Set(),adding:new Set(),archOpen:false};
+const ui={open:null,renaming:null,flash:null,focus:null,filter:new Set(),days:null,daysTyped:7,review:false,keep:new Set(),adding:new Set(),archOpen:false};
 let rendering=false;
 let isSample=true, touched=false;
 
@@ -290,7 +319,7 @@ function blankData(){
 function sampleData(){
   const sections=[], tasks=[];
   const S=(name,parent,o)=>{o=o||{};const s={id:uid(),name:name,parent:parent?parent.id:null,collapsed:!!o.collapsed,archived:!!o.archived};sections.push(s);return s;};
-  const T=(sec,title,status,o)=>{o=o||{};tasks.push({id:uid(),title:title,status:status,section:sec.id,notes:o.notes||'',links:o.links||[]});};
+  const T=(sec,title,status,o)=>{o=o||{};tasks.push({id:uid(),title:title,status:status,section:sec.id,notes:o.notes||'',links:o.links||[],completed:o.done!=null?daysAgo(o.done):'',review:!!o.review,reviewNote:o.reviewNote||''});};
 
   const design=S('Design');
   T(design,'Review weight estimate against the curb rating',2);
@@ -298,38 +327,38 @@ function sampleData(){
     {notes:'Lift-off is cheaper, but service techs need two hands for it. Ask field service which they prefer before committing.'});
   const encl=S('Enclosure and sheet metal',design);
   T(encl,'Fix interference between drain pan and base rail',3,{notes:'Waiting on the coil supplier to confirm the final pan connection height.'});
-  T(encl,'Add hem to hinge side of the access door flat pattern',2);
+  T(encl,'Add hem to hinge side of the access door flat pattern',2,{review:true,reviewNote:'Check the hem direction with the fabricator'});
   T(encl,'Check bend relief on the filter rack bracket',1);
   T(encl,'Add lifting lug detail to the base frame drawing',1);
-  T(encl,'Update gasket callout to closed-cell EPDM',4);
+  T(encl,'Update gasket callout to closed-cell EPDM',4,{done:1});
   const panel=S('Controls panel',design);
   T(panel,'Confirm SCCR label values against the breaker datasheet',4,{notes:'Distributor confirmed by email. Values match the label.'});
-  T(panel,'Lay out the door-mounted disconnect and HMI cutouts',4);
-  T(panel,'Print and apply terminal block labels on the prototype panel',4);
+  T(panel,'Lay out the door-mounted disconnect and HMI cutouts',4,{done:3});
+  T(panel,'Print and apply terminal block labels on the prototype panel',4,{done:12});
 
   const eco=S('ECOs and BOM');
   T(eco,'Release the ECO for the drain pan gasket change',2,{
     notes:'Links can point at anything with a web address. The description next to each one is optional.',
     links:[{url:'https://example.com/eco/142',desc:'ECO form'},{url:'https://example.com/drawings/drain-pan-rev-c',desc:'Drawing, rev C'}]});
   T(eco,'Get approval on the damper actuator substitution',2,{notes:'With the approver since last week.'});
-  T(eco,'BOM scrub: flag single-source fasteners',1);
+  T(eco,'BOM scrub: flag single-source fasteners',1,{review:true});
   T(eco,'Add missing torque specs to the assembly notes',1);
-  T(eco,'Close out the ECO for the revised filter rack',4);
+  T(eco,'Close out the ECO for the revised filter rack',4,{done:5});
 
   const test=S('Testing and instrumentation');
   T(test,'Calibrate thermocouples before the airflow test',3);
   T(test,'Write the test plan for the coil leaving-air temperature run',2,{
     notes:'Include sensor locations, logging interval and pass criteria.',links:[{url:'https://example.com/test-plans/coil-lat',desc:''}]});
   T(test,'Chase down the noisy channel on the data logger',2,{notes:'Needs the spare input module, which is on order. See Vendors and purchasing.'});
-  T(test,'Mount differential pressure taps across the filter bank',1);
-  T(test,'Post-process the fan curve data from last week',4);
+  T(test,'Mount differential pressure taps across the filter bank',1,{done:2});
+  T(test,'Post-process the fan curve data from last week',4,{done:20});
 
   const vend=S('Vendors and purchasing');
   T(vend,'Request the compressor spec sheet from the supplier',1);
   T(vend,'Compare two gasket suppliers on price and lead time',1,{
     links:[{url:'https://example.com/quotes/gasket-a',desc:'Quote A'},{url:'https://example.com/quotes/gasket-b',desc:'Quote B'}]});
   T(vend,'Receive and inspect the spare data logger input module',1);
-  T(vend,'Send revised drawings to the fabricator',4);
+  T(vend,'Send revised drawings to the fabricator',4,{review:true,reviewNote:'Confirm they received rev C'});
 
   const admin=S('Admin and recurring',null,{collapsed:true});
   T(admin,'Submit expense report',1);
@@ -368,7 +397,7 @@ function normalize(o){
     let links=[];
     if(Array.isArray(t.links)) links=t.links.map(l=>({url:String((l&&l.url)||''),desc:String((l&&l.desc)||'')})).filter(l=>l.url||l.desc);
     else if(t.link) links=[{url:String(t.link),desc:''}];
-    return {id:String(t.id||uid()),title:String(t.title||''),status:st,section:byId.has(t.section)?t.section:firstSec(),notes:String(t.notes||''),links:links};
+    return {id:String(t.id||uid()),title:String(t.title||''),status:st,section:byId.has(t.section)?t.section:firstSec(),notes:String(t.notes||''),links:links,completed:/^\d{4}-\d{2}-\d{2}$/.test(t.completed||'')?t.completed:'',review:!!t.review,reviewNote:String(t.reviewNote||'')};
   });
   return d;
 }
@@ -426,27 +455,32 @@ function undo(){
 }
 
 /* ================= filter ================= */
-const matches=t=>!ui.filter.size||ui.filter.has(t.status)||ui.keep.has(t.id);
+const filterOn=()=>ui.filter.size>0||ui.days!=null||ui.review;
+/* Does a task pass the filter that is on? One filter at a time: the review box, the completed date (only while the task is green), or a color. */
+const hit=t=>ui.review?!!t.review:ui.days!=null?(t.status===4&&!!t.completed&&t.completed>=daysAgo(ui.days)):ui.filter.has(t.status);
+const matches=t=>!filterOn()||hit(t)||ui.keep.has(t.id);
 /* Picking colors opens every section that holds a task of those colors and closes the rest.
    The open and closed states are left as they are when the filter is cleared. Archived sections are never touched. */
 function applyFilter(){
   ui.keep.clear();
-  if(!ui.filter.size) return;
+  if(!filterOn()) return;
   data.sections.forEach(s=>{
     if(isArchived(s.id)) return;
-    s.collapsed=!deepTasks(s.id).some(t=>ui.filter.has(t.status));
+    s.collapsed=!deepTasks(s.id).some(hit);
   });
 }
 
 /* ================= rendering ================= */
-function render(){document.documentElement.classList.toggle('filtering',ui.filter.size>0);renderTop();renderList();renderFile();}
+function render(){document.documentElement.classList.toggle('filtering',filterOn());renderTop();renderList();renderFile();}
 
 function renderTop(){
   const name=$('#listName'); if(document.activeElement!==name) name.value=data.title;
   document.title=data.title;
   const f=$('#filter');
   $$('.dot',f).forEach(b=>b.remove());
-  $('#clearFilter').style.visibility=ui.filter.size?'visible':'hidden';
+  $('#clearFilter').style.visibility=filterOn()?'visible':'hidden';
+  const mf=$('#moreFilters'); mf.setAttribute('aria-pressed',ui.review||ui.days!=null);
+  mf.title=ui.review?'Showing tasks marked for review':ui.days!=null?'Showing tasks completed in the last '+ui.days+(ui.days===1?' day':' days'):'More filters';
   f.insertAdjacentHTML('beforeend',STATUSES.map(n=>'<button class="dot" data-f="'+n+'" style="--c:'+ST[n].dot+'" aria-pressed="'+ui.filter.has(n)+'" aria-label="Show only '+ST[n].name.toLowerCase()+' tasks"></button>').join(''));
 }
 
@@ -471,6 +505,12 @@ function detailHTML(t){
   return '<div class="detail">'+
     '<label class="f"><span>Notes</span><textarea data-act="notes" data-fid="notes-'+t.id+'" rows="3">'+esc(t.notes)+'</textarea></label>'+
     '<div class="f"><span>Links</span><div class="links">'+rows+'</div></div>'+
+    '<div class="f"><span>Completed date</span><div class="done-row'+(t.status===4?'':' off')+'">'+
+      '<input type="date" data-act="done-date" data-fid="done-'+t.id+'" value="'+esc(t.completed)+'" aria-label="Completed date"'+(t.status===4?'':' disabled')+'>'+
+      '<button class="btn sm" data-act="done-today"'+(t.status===4?'':' disabled')+'>Today</button>'+
+    '</div></div>'+
+    '<div class="rev-row"><label class="rev"><input type="checkbox" data-act="review"'+(t.review?' checked':'')+'>Review</label>'+
+      '<input class="rev-note" data-act="rev-note" data-fid="rev-'+t.id+'" value="'+esc(t.reviewNote)+'" placeholder="Review notes" aria-label="Review notes" autocomplete="off"></div>'+
     '<div class="d-foot"><button class="btn sm danger" data-act="delete">Delete task</button></div>'+
   '</div>';
 }
@@ -544,7 +584,7 @@ function renderList(){
   const tops=kids(null), active=tops.filter(s=>!s.archived), archived=tops.filter(s=>s.archived);
   rendering=true;
   root.innerHTML=active.map(s=>sectionHTML(s,0)).join('')+
-    '<div class="below"><button class="btn" data-act="new-section">Add a section</button></div>'+
+    (tops.length?'':'<p class="nosec">No sections yet. Click the three dots at the top right, then Add a section.</p>')+
     '<section class="archive'+(ui.archOpen?'':' collapsed')+(archived.length?'':' none-yet')+'">'+
       '<div class="arch-head" data-act="arch-toggle">'+
         '<button class="icon-btn caret" data-act="arch-toggle" aria-expanded="'+ui.archOpen+'" aria-label="'+(ui.archOpen?'Collapse':'Expand')+' archive">'+SVG_CARET+'</button>'+
@@ -570,13 +610,19 @@ const list=$('#list');
 
 function setStatus(tid,n){
   const t=task(tid); if(!t||t.status===n) return;
-  if(ui.filter.size) ui.keep.add(tid); // stays in view until the filter is changed
+  if(filterOn()) ui.keep.add(tid); // stays in view until the filter is changed
   commit(()=>{t.status=n;});
+}
+function setCompleted(tid,v){
+  const t=task(tid); if(!t||t.status!==4) return;
+  v=/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''; if(v===t.completed) return;
+  if(filterOn()) ui.keep.add(tid);
+  commit(()=>{t.completed=v;});
 }
 function addTask(text,sid){
   const title=text.trim(); if(!title||!section(sid)) return false;
-  const t={id:uid(),title:title,status:1,section:sid,notes:'',links:[]};
-  if(ui.filter.size) ui.keep.add(t.id);
+  const t={id:uid(),title:title,status:1,section:sid,notes:'',links:[],completed:'',review:false,reviewNote:''};
+  if(filterOn()) ui.keep.add(t.id);
   ui.flash=t.id;
   commit(()=>{data.tasks.push(t);});
   return true;
@@ -588,7 +634,7 @@ function deleteTask(tid){
   toast('Deleted "'+clip(t.title)+'"');
 }
 function newSection(parent){
-  const s={id:uid(),name:parent?'New sub-section':'New section',parent:parent||null,collapsed:false,archived:false};
+  const s={id:uid(),name:parent?'New subsection':'New section',parent:parent||null,collapsed:false,archived:false};
   ui.renaming=s.id; ui.focus={fid:'ren-'+s.id,select:true,scroll:true};
   commit(()=>{
     if(parent){section(parent).collapsed=false;data.sections.push(s);}
@@ -612,18 +658,18 @@ function setArchived(sid,on){
   const s=section(sid); if(!s||s.parent) return;
   if(on&&!ui.archOpen&&ui.open&&deepIds(sid).indexOf((task(ui.open)||{}).section)>=0) ui.open=null;
   commit(()=>{s.archived=on;});
-  toast(on?'Moved "'+clip(s.name)+'" to the archive':'Restored "'+clip(s.name)+'"');
+  toast((on?'Archived section "':'Unarchived section "')+clip(s.name)+'"');
 }
 function sectionMenu(anchor,sid){
   const s=section(sid);
   const items=[{label:'Rename',act:()=>{ui.renaming=sid;ui.focus={fid:'ren-'+sid,select:true};renderList();}}];
   if(!s.parent){
-    items.push({label:'Add a sub-section',act:()=>newSection(sid)});
-    items.push(s.archived?{label:'Restore',act:()=>setArchived(sid,false)}:{label:'Archive',act:()=>setArchived(sid,true)});
+    items.push({label:'Add a subsection',act:()=>newSection(sid)});
+    items.push(s.archived?{label:'Unarchive section',act:()=>setArchived(sid,false)}:{label:'Archive section',act:()=>setArchived(sid,true)});
     const n=hiddenKids(sid).length;
-    if(n) items.push({label:'Show archived ('+n+')',act:()=>openArchived(sid)});
+    if(n) items.push({label:'Show archived subsections ('+n+')',act:()=>openArchived(sid)});
   }else{
-    items.push({label:'Archive',act:()=>archiveSub(sid,true)});
+    items.push({label:'Archive subsection',act:()=>archiveSub(sid,true)});
   }
   items.push({sep:true},{label:'Delete section',danger:true,act:()=>deleteSection(sid)});
   menu(anchor,items);
@@ -633,14 +679,14 @@ function archiveSub(sid,on){
   const s=section(sid); if(!s||!s.parent) return;
   if(on&&ui.open&&(task(ui.open)||{}).section===sid) ui.open=null;
   commit(()=>{s.archived=on;});
-  if(on) toast('Archived "'+clip(s.name)+'"');
+  toast((on?'Archived subsection "':'Unarchived subsection "')+clip(s.name)+'"');
 }
 const archDlg=$('#archDlg'); let archFor=null;
 function renderArchived(){
   const sec=section(archFor), subs=sec?hiddenKids(archFor):[];
   if(!subs.length){if(archDlg.open)archDlg.close();return;}
-  $('#archTitle').textContent='Archived in '+sec.name;
-  $('#archBody').innerHTML=subs.map(k=>'<div class="arow"><span>'+esc(k.name)+'</span><button class="btn sm" data-un="'+k.id+'">Unarchive</button></div>').join('');
+  $('#archTitle').textContent='Archived subsections in '+sec.name;
+  $('#archBody').innerHTML=subs.map(k=>'<div class="arow"><span>'+esc(k.name)+'</span><button class="btn sm" data-un="'+k.id+'">Unarchive subsection</button></div>').join('');
 }
 function openArchived(sid){archFor=sid;renderArchived();if(hiddenKids(sid).length&&!archDlg.open)archDlg.showModal();}
 $('#archBody').addEventListener('click',e=>{const b=e.target.closest('[data-un]');if(!b)return;archiveSub(b.dataset.un,false);renderArchived();});
@@ -661,8 +707,8 @@ list.addEventListener('click',e=>{
     case 'open': ui.open=tid; ui.focus={fid:'title-'+tid}; renderList(); showOpen(); break;
     case 'arrow': ui.open=(ui.open===tid?null:tid); renderList(); showOpen(); break;
     case 'delete': deleteTask(tid); break;
+    case 'done-today': setCompleted(tid,dateStamp()); break;
     case 'add-open': ui.adding.add(sid); ui.focus={fid:'add-'+sid}; renderList(); break;
-    case 'new-section': newSection(null); break;
     case 'gh-retry': startUp(); break;
     case 'gh-setup': openSetup(); break;
   }
@@ -741,14 +787,24 @@ list.addEventListener('focusout',e=>{
 });
 list.addEventListener('focusin',e=>{
   const act=e.target.dataset?e.target.dataset.act:null;
-  if(act==='title'||act==='notes'||act==='l-url'||act==='l-desc') pushUndo();
+  if(act==='title'||act==='notes'||act==='l-url'||act==='l-desc'||act==='rev-note') pushUndo();
+});
+list.addEventListener('change',e=>{
+  const a=e.target, act=a.dataset?a.dataset.act:null;
+  if(act==='done-date') setCompleted(a.closest('[data-tid]').dataset.tid,a.value);
+  else if(act==='review'){
+    const tid=a.closest('[data-tid]').dataset.tid, t=task(tid); if(!t) return;
+    if(filterOn()) ui.keep.add(tid);
+    commit(()=>{t.review=a.checked;});
+  }
 });
 list.addEventListener('input',e=>{
   const a=e.target, act=a.dataset?a.dataset.act:null;
-  if(act!=='title'&&act!=='notes'&&act!=='l-url'&&act!=='l-desc') return;
+  if(act!=='title'&&act!=='notes'&&act!=='l-url'&&act!=='l-desc'&&act!=='rev-note') return;
   const tid=a.closest('[data-tid]').dataset.tid, t=task(tid); if(!t) return;
   if(act==='title'){ if(a.value.trim()) t.title=a.value.trim(); }
   else if(act==='notes') t.notes=a.value;
+  else if(act==='rev-note') t.reviewNote=a.value;
   else syncLinks(tid);
   markDirty();
 });
@@ -825,7 +881,7 @@ function endDrag(drop){
   const tgt=d.tgt; if(!drop||!d.started||!tgt) return;
   if(d.kind==='task'){
     if(!task(d.id)) return;
-    if(ui.filter.size) ui.keep.add(d.id);
+    if(filterOn()) ui.keep.add(d.id);
     commit(()=>{
       const i=data.tasks.findIndex(t=>t.id===d.id), t=data.tasks.splice(i,1)[0];
       if(tgt.tid){const j=data.tasks.findIndex(x=>x.id===tgt.tid);t.section=data.tasks[j].section;data.tasks.splice(tgt.after?j+1:j,0,t);}
@@ -866,11 +922,37 @@ $('#listName').addEventListener('blur',e=>{e.target.value=data.title;});
 
 $('#filter').addEventListener('click',e=>{
   const x=e.target.closest('#clearFilter'), b=e.target.closest('[data-f]'); if(!x&&!b) return;
-  if(x) ui.filter.clear();
-  else{const n=+b.dataset.f, was=ui.filter.has(n); ui.filter.clear(); if(!was) ui.filter.add(n);} // one color at a time; pressing it again clears it
-  if(ui.open&&!isArchived(task(ui.open).section)&&ui.filter.size&&!ui.filter.has(task(ui.open).status)) ui.open=null;
-  commit(applyFilter,{undo:false});
+  if(x){ui.filter.clear();ui.days=null;ui.review=false;}
+  else{const n=+b.dataset.f, was=ui.filter.has(n); ui.filter.clear(); ui.days=null; ui.review=false; if(!was) ui.filter.add(n);} // one filter at a time; pressing it again clears it
+  closeFilterPop(); filterChanged();
 });
+function filterChanged(){
+  if(ui.open&&task(ui.open)&&!isArchived(task(ui.open).section)&&filterOn()&&!hit(task(ui.open))) ui.open=null;
+  commit(applyFilter,{undo:false});
+}
+/* the funnel button: the less common filters. Review = tasks with the review box ticked.
+   Completed = green tasks whose completed date falls within the last N days. */
+const filterPop=$('#filterPop'), daysN=$('#daysN');
+function closeFilterPop(){filterPop.hidden=true;}
+function syncFilterPop(){$('#fReview').checked=ui.review;$('#fDays').checked=ui.days!=null;if(document.activeElement!==daysN)daysN.value=ui.daysTyped;}
+$('#moreFilters').addEventListener('click',e=>{
+  if(!filterPop.hidden){closeFilterPop();return;}
+  syncFilterPop(); filterPop.hidden=false;
+  const r=e.currentTarget.getBoundingClientRect();
+  filterPop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-filterPop.offsetWidth-8))+'px'; filterPop.style.top=(r.bottom+4)+'px';
+});
+$('#fReview').addEventListener('change',e=>{ui.filter.clear();ui.days=null;ui.review=e.target.checked;syncFilterPop();filterChanged();});
+$('#fDays').addEventListener('change',e=>{
+  ui.filter.clear();ui.review=false;ui.days=e.target.checked?ui.daysTyped:null;syncFilterPop();filterChanged();
+  if(ui.days!=null){daysN.focus();daysN.select();}
+});
+daysN.addEventListener('input',()=>{ // typing a number applies it straight away, switching this filter on if it was off
+  const n=parseInt(daysN.value,10); if(!(n>=0)) return;
+  ui.daysTyped=Math.min(n,3650); ui.filter.clear(); ui.review=false; ui.days=ui.daysTyped; syncFilterPop(); filterChanged();
+});
+filterPop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();e.stopPropagation();closeFilterPop();$('#moreFilters').focus();}});
+document.addEventListener('mousedown',e=>{if(!filterPop.hidden&&!filterPop.contains(e.target)&&!e.target.closest('#moreFilters'))closeFilterPop();});
+window.addEventListener('resize',closeFilterPop);
 $('#collapseAll').addEventListener('click',()=>commit(()=>data.sections.forEach(s=>{s.collapsed=true;}),{undo:false}));
 $('#expandAll').addEventListener('click',()=>commit(()=>data.sections.forEach(s=>{s.collapsed=false;}),{undo:false}));
 
@@ -888,15 +970,15 @@ $('#importFile').addEventListener('change',async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   try{
     const d=normalize(JSON.parse(await f.text()));
-    pushUndo(); data=d; isSample=false; ui.open=null; ui.filter.clear(); ui.keep.clear(); markDirty(); render();
+    pushUndo(); data=d; isSample=false; ui.open=null; ui.filter.clear(); ui.days=null; ui.review=false; ui.keep.clear(); markDirty(); render();
     toast('Restored from '+f.name);
   }catch(err){toast('That file is not a to-do backup, so nothing was changed');}
 });
 function exportCSV(){
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const rows=[['Section','Task','Status','Notes','Links','Archived']];
+  const rows=[['Section','Task','Status','Completed','Review','Review notes','Notes','Links','Archived']];
   orderedSections().forEach(s=>data.tasks.filter(t=>t.section===s.id).forEach(t=>
-    rows.push([sectionPath(t.section),t.title,ST[t.status].name,t.notes,
+    rows.push([sectionPath(t.section),t.title,ST[t.status].name,t.completed,t.review?'Yes':'',t.reviewNote,t.notes,
       t.links.map(l=>l.desc?l.desc+': '+l.url:l.url).join('\n'),isArchived(t.section)?'Yes':''])));
   download('todo-'+dateStamp()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv');
 }
@@ -943,7 +1025,7 @@ function toast(msg){
 
 /* ================= clicking empty space closes the open task ================= */
 let downOnBlank=false;
-const isBlank=t=>!(t&&t.closest&&t.closest('.tw,button,input,textarea,select,a,.sec-head,.arch-head,#pop,#toast,.banner,dialog'));
+const isBlank=t=>!(t&&t.closest&&t.closest('.tw,button,input,textarea,select,a,.sec-head,.arch-head,#pop,#filterPop,#toast,.banner,dialog'));
 document.addEventListener('mousedown',e=>{downOnBlank=isBlank(e.target);},true);
 document.addEventListener('click',e=>{ if(ui.open&&downOnBlank&&isBlank(e.target)){ui.open=null;renderList();} });
 
@@ -952,6 +1034,7 @@ document.addEventListener('keydown',e=>{
   if($('dialog[open]')) return;
   if(e.key==='Escape'){
     if(drag){endDrag(false);return;}
+    if(!filterPop.hidden){closeFilterPop();return;}
     if(!pop.hidden){const a=popAnchor;closePop();if(a&&a.isConnected)a.focus();return;}
     if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body) document.activeElement.blur();
     if(ui.open){ui.open=null;renderList();}
@@ -983,7 +1066,7 @@ function applyCollapse(){ // this browser's own open and closed states win over 
   let m={}; try{m=JSON.parse(localStorage.getItem(LS_COLLAPSE)||'{}')||{};}catch(e){}
   data.sections.forEach(s=>{if(Object.prototype.hasOwnProperty.call(m,s.id))s.collapsed=!!m[s.id];});
 }
-function resetView(){undoStack=[];ui.open=null;ui.filter.clear();ui.keep.clear();ui.adding.clear();ui.archOpen=false;}
+function resetView(){undoStack=[];ui.open=null;ui.filter.clear();ui.days=null;ui.review=false;ui.keep.clear();ui.adding.clear();ui.archOpen=false;}
 
 const b64enc=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin);};
 const b64dec=b=>{const bin=atob(String(b||'').replace(/\s/g,''));const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder().decode(bytes);};
