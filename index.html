@@ -70,7 +70,7 @@ button{cursor:pointer}
 /* ---------- sections ---------- */
 main{padding:4px 0 96px}
 .sec{margin-top:8px}
-.sec .sec{margin:5px 0 5px 32px}
+.sec .sec{margin:5px 0 5px 16px}
 .sec-head{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 3px 0 4px;border-radius:4px;border:1px solid rgba(24,38,47,.2);
   cursor:pointer;user-select:none;-webkit-user-select:none}
 .d1>.sec-head{min-height:24px;background:transparent;border:0;border-bottom:1.5px solid var(--muted);border-radius:0;padding-left:0}
@@ -87,6 +87,10 @@ main{padding:4px 0 96px}
 .sec-head .fill{flex:1}
 .mix i{display:block;min-width:17px;border-radius:2px;color:#fff;font:700 11px/16px var(--display);font-style:normal;text-align:center;font-variant-numeric:tabular-nums}
 .sec-body{padding:2px 0 1px}
+/* a section is a plain white bar; color and counts live on its subsections */
+.d0>.sec-head{background:#fff}
+.addsub-row{margin:2px 0 4px 16px;min-height:28px;display:flex;align-items:center}
+.plus.sub{padding:0 8px 0 3px} /* the dashed circle sits directly under the subsections' arrows */
 .sec.sdrop-before{box-shadow:0 -3px 0 var(--accent)}
 .sec.sdrop-after{box-shadow:0 3px 0 var(--accent)}
 .sec.dragging{opacity:.45}
@@ -197,7 +201,8 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
   .file-state{display:none}
   .detail{padding:8px 8px 8px 10px}
   .add-row{padding:1px 8px 1px 81px}
-  .sec .sec{margin-left:16px}
+  .sec .sec{margin-left:8px}
+  .addsub-row{margin-left:8px}
   .mix{width:96px}
   .link-row{grid-template-columns:minmax(0,1fr) 28px}
   .link-row input:nth-child(2){grid-row:2}
@@ -299,7 +304,7 @@ let data;
 let undoStack=[];
 const ui={open:null,renaming:null,flash:null,focus:null,filter:new Set(),days:null,daysTyped:7,review:false,keep:new Set(),adding:new Set(),archOpen:false};
 let rendering=false;
-let isSample=true, touched=false;
+let isSample=true, touched=false, normalizeMoved=false;
 
 /* GitHub connection. The page is public, so it holds no tasks and no token: the token lives only in this browser's storage. */
 let inFrame=false; try{inFrame=window.self!==window.top;}catch(e){inFrame=true;}
@@ -322,9 +327,6 @@ function sampleData(){
   const T=(sec,title,status,o)=>{o=o||{};tasks.push({id:uid(),title:title,status:status,section:sec.id,notes:o.notes||'',links:o.links||[],completed:o.done!=null?daysAgo(o.done):'',review:!!o.review,reviewNote:o.reviewNote||''});};
 
   const design=S('Design');
-  T(design,'Review weight estimate against the curb rating',2);
-  T(design,'Decide on hinged or lift-off access door for the filter section',1,
-    {notes:'Lift-off is cheaper, but service techs need two hands for it. Ask field service which they prefer before committing.'});
   const encl=S('Enclosure and sheet metal',design);
   T(encl,'Fix interference between drain pan and base rail',3,{notes:'Waiting on the coil supplier to confirm the final pan connection height.'});
   T(encl,'Add hem to hinge side of the access door flat pattern',2,{review:true,reviewNote:'Check the hem direction with the fabricator'});
@@ -335,39 +337,50 @@ function sampleData(){
   T(panel,'Confirm SCCR label values against the breaker datasheet',4,{notes:'Distributor confirmed by email. Values match the label.'});
   T(panel,'Lay out the door-mounted disconnect and HMI cutouts',4,{done:3});
   T(panel,'Print and apply terminal block labels on the prototype panel',4,{done:12});
+  const gen=S('General',design);
+  T(gen,'Review weight estimate against the curb rating',2);
+  T(gen,'Decide on hinged or lift-off access door for the filter section',1,
+    {notes:'Lift-off is cheaper, but service techs need two hands for it. Ask field service which they prefer before committing.'});
 
   const eco=S('ECOs and BOM');
-  T(eco,'Release the ECO for the drain pan gasket change',2,{
+  const open=S('Open ECOs',eco);
+  T(open,'Release the ECO for the drain pan gasket change',2,{
     notes:'Links can point at anything with a web address. The description next to each one is optional.',
     links:[{url:'https://example.com/eco/142',desc:'ECO form'},{url:'https://example.com/drawings/drain-pan-rev-c',desc:'Drawing, rev C'}]});
-  T(eco,'Get approval on the damper actuator substitution',2,{notes:'With the approver since last week.'});
-  T(eco,'BOM scrub: flag single-source fasteners',1,{review:true});
-  T(eco,'Add missing torque specs to the assembly notes',1);
-  T(eco,'Close out the ECO for the revised filter rack',4,{done:5});
+  T(open,'Get approval on the damper actuator substitution',2,{notes:'With the approver since last week.'});
+  T(open,'Close out the ECO for the revised filter rack',4,{done:5});
+  const bom=S('BOM cleanup',eco);
+  T(bom,'BOM scrub: flag single-source fasteners',1,{review:true});
+  T(bom,'Add missing torque specs to the assembly notes',1);
 
   const test=S('Testing and instrumentation');
-  T(test,'Calibrate thermocouples before the airflow test',3);
-  T(test,'Write the test plan for the coil leaving-air temperature run',2,{
+  const air=S('Airflow test',test);
+  T(air,'Calibrate thermocouples before the airflow test',3);
+  T(air,'Write the test plan for the coil leaving-air temperature run',2,{
     notes:'Include sensor locations, logging interval and pass criteria.',links:[{url:'https://example.com/test-plans/coil-lat',desc:''}]});
-  T(test,'Chase down the noisy channel on the data logger',2,{notes:'Needs the spare input module, which is on order. See Vendors and purchasing.'});
-  T(test,'Mount differential pressure taps across the filter bank',1,{done:2});
-  T(test,'Post-process the fan curve data from last week',4,{done:20});
+  T(air,'Mount differential pressure taps across the filter bank',1,{done:2});
+  T(air,'Post-process the fan curve data from last week',4,{done:20});
+  const logr=S('Data logger',test);
+  T(logr,'Chase down the noisy channel on the data logger',2,{notes:'Needs the spare input module, which is on order. See Vendors and purchasing.'});
 
   const vend=S('Vendors and purchasing');
-  T(vend,'Request the compressor spec sheet from the supplier',1);
-  T(vend,'Compare two gasket suppliers on price and lead time',1,{
+  const oq=S('Orders and quotes',vend);
+  T(oq,'Request the compressor spec sheet from the supplier',1);
+  T(oq,'Compare two gasket suppliers on price and lead time',1,{
     links:[{url:'https://example.com/quotes/gasket-a',desc:'Quote A'},{url:'https://example.com/quotes/gasket-b',desc:'Quote B'}]});
-  T(vend,'Receive and inspect the spare data logger input module',1);
-  T(vend,'Send revised drawings to the fabricator',4,{review:true,reviewNote:'Confirm they received rev C'});
+  T(oq,'Receive and inspect the spare data logger input module',1);
+  T(oq,'Send revised drawings to the fabricator',4,{review:true,reviewNote:'Confirm they received rev C'});
 
   const admin=S('Admin and recurring',null,{collapsed:true});
-  T(admin,'Submit expense report',1);
-  T(admin,'Write up weekly design review notes',1);
-  T(admin,'Renew CAD seat',1,{notes:'Waiting on finance approval.'});
+  const rec=S('Recurring',admin);
+  T(rec,'Submit expense report',1);
+  T(rec,'Write up weekly design review notes',1);
+  T(rec,'Renew CAD seat',1,{notes:'Waiting on finance approval.'});
 
   const old=S('Prototype 1 build',null,{archived:true});
-  T(old,'Assemble base frame and curb adapter',4);
-  T(old,'Leak check the coil connections',4);
+  const asm=S('Assembly',old);
+  T(asm,'Assemble base frame and curb adapter',4);
+  T(asm,'Leak check the coil connections',4);
   const punch=S('Punch list',old);
   T(punch,'Replace stripped rivnut on the left access panel',4);
   T(punch,'Return the borrowed torque wrench to the shop',1);
@@ -398,6 +411,15 @@ function normalize(o){
     if(Array.isArray(t.links)) links=t.links.map(l=>({url:String((l&&l.url)||''),desc:String((l&&l.desc)||'')})).filter(l=>l.url||l.desc);
     else if(t.link) links=[{url:String(t.link),desc:''}];
     return {id:String(t.id||uid()),title:String(t.title||''),status:st,section:byId.has(t.section)?t.section:firstSec(),notes:String(t.notes||''),links:links,completed:/^\d{4}-\d{2}-\d{2}$/.test(t.completed||'')?t.completed:'',review:!!t.review,reviewNote:String(t.reviewNote||'')};
+  });
+  // Every task lives in a subsection. Any task found directly in a top-level section (older files) is moved
+  // into a subsection named "Other" inside that section, so nothing is lost or hidden.
+  normalizeMoved=false;
+  d.sections.filter(x=>!x.parent).forEach(top=>{
+    const stray=d.tasks.filter(t=>t.section===top.id); if(!stray.length) return;
+    let other=d.sections.find(x=>x.parent===top.id&&x.name==='Other'&&!x.archived);
+    if(!other){other={id:uid(),name:'Other',parent:top.id,collapsed:false,archived:false};d.sections.push(other);}
+    stray.forEach(t=>{t.section=other.id;}); normalizeMoved=true;
   });
   return d;
 }
@@ -538,30 +560,34 @@ function addRowHTML(s){
     ?'<input data-act="add-input" data-fid="add-'+s.id+'" placeholder="'+label+'" aria-label="'+label+'" autocomplete="off">'
     :'<button class="plus" data-act="add-open" aria-label="'+label+'"><i>+</i><span>'+label+'</span></button>')+'</div>';
 }
+function addSubRowHTML(s){
+  return '<div class="addsub-row" data-sid="'+s.id+'"><button class="plus sub" data-act="add-sub" aria-label="Add a subsection to '+esc(s.name)+'"><i>+</i><span>Add a subsection</span></button></div>';
+}
+/* depth 0 = section: a plain bar holding subsections and a + for another subsection.
+   depth 1 = subsection: holds the tasks, and shows their color (behind its name) and their count bar. */
 function sectionHTML(s,depth){
-  const arch=isArchived(s.id);
-  const own=data.tasks.filter(t=>t.section===s.id);
+  const sub=depth===1, arch=isArchived(s.id);
+  const own=sub?data.tasks.filter(t=>t.section===s.id):[];
   const vis=arch?own:own.filter(matches);
-  const all=deepTasks(s.id);
-  const segs=STATUSES.map(n=>{const c=all.filter(t=>t.status===n).length;return c?'<i style="flex:'+c+';background:'+ST[n].seg+'">'+c+'</i>':'';}).join('');
-  const segLabel=STATUSES.map(n=>{const c=all.filter(t=>t.status===n).length;return c?c+' '+ST[n].name.toLowerCase():'';}).filter(Boolean).join(', ');
+  const segs=STATUSES.map(n=>{const c=own.filter(t=>t.status===n).length;return c?'<i style="flex:'+c+';background:'+ST[n].seg+'">'+c+'</i>':'';}).join('');
+  const segLabel=STATUSES.map(n=>{const c=own.filter(t=>t.status===n).length;return c?c+' '+ST[n].name.toLowerCase():'';}).filter(Boolean).join(', ');
   const name=ui.renaming===s.id
-    ?'<input class="sec-rename" data-act="rename-input" data-fid="ren-'+s.id+'" value="'+esc(s.name)+'" aria-label="Section name">'
-    :'<h2 class="sec-name"'+(depth===1?' style="background:'+ST[rollup(own)].bg+'"':'')+'>'+esc(s.name)+'</h2>';
+    ?'<input class="sec-rename" data-act="rename-input" data-fid="ren-'+s.id+'" value="'+esc(s.name)+'" aria-label="'+(sub?'Subsection':'Section')+' name">'
+    :'<h2 class="sec-name"'+(sub?' style="background:'+ST[rollup(own)].bg+'"':'')+'>'+esc(s.name)+'</h2>';
   const hidden=own.length-vis.length;
   return '<section class="sec d'+depth+(s.collapsed?' collapsed':'')+'" data-sid="'+s.id+'">'+
-    '<div class="sec-head" data-act="toggle"'+(depth===0?' style="background:'+ST[rollup(all)].bg+'"':'')+'>'+
+    '<div class="sec-head" data-act="toggle">'+
       '<button class="icon-btn caret" data-act="toggle" aria-expanded="'+(!s.collapsed)+'" aria-label="'+(s.collapsed?'Expand ':'Collapse ')+esc(s.name)+'">'+SVG_CARET+'</button>'+
       name+'<span class="fill"></span>'+
-      (depth===0?'<span class="mix" role="img" aria-label="'+esc(segLabel||'No tasks')+'">'+segs+'</span>':'')+
+      (sub?'<span class="mix" role="img" aria-label="'+esc(segLabel||'No tasks')+'">'+segs+'</span>':'')+
       '<button class="icon-btn" data-act="sec-menu" aria-label="Options for '+esc(s.name)+'">'+SVG_DOTS+'</button>'+
       '<span class="sgrip" title="Drag to reorder" aria-hidden="true">'+SVG_MOVE+'</span>'+
     '</div>'+
-    (s.collapsed?'':'<div class="sec-body">'+
-      (depth===0?liveKids(s.id).map(k=>sectionHTML(k,1)).join(''):'')+ // sub-sections first, then the section's own tasks and its + button
-      vis.map(taskHTML).join('')+
-      (hidden?'<p class="none">'+hidden+(hidden===1?' task':' tasks')+' here hidden by the filter</p>':'')+
-      addRowHTML(s)+
+    (s.collapsed?'':'<div class="sec-body">'+(sub
+      ? vis.map(taskHTML).join('')+
+        (hidden?'<p class="none">'+hidden+(hidden===1?' task':' tasks')+' here hidden by the filter</p>':'')+
+        addRowHTML(s)
+      : liveKids(s.id).map(k=>sectionHTML(k,1)).join('')+addSubRowHTML(s))+
     '</div>')+
   '</section>';
 }
@@ -620,7 +646,7 @@ function setCompleted(tid,v){
   commit(()=>{t.completed=v;});
 }
 function addTask(text,sid){
-  const title=text.trim(); if(!title||!section(sid)) return false;
+  const title=text.trim(); if(!title||!section(sid)||!section(sid).parent) return false; // tasks only go in subsections
   const t={id:uid(),title:title,status:1,section:sid,notes:'',links:[],completed:'',review:false,reviewNote:''};
   if(filterOn()) ui.keep.add(t.id);
   ui.flash=t.id;
@@ -709,6 +735,7 @@ list.addEventListener('click',e=>{
     case 'delete': deleteTask(tid); break;
     case 'done-today': setCompleted(tid,dateStamp()); break;
     case 'add-open': ui.adding.add(sid); ui.focus={fid:'add-'+sid}; renderList(); break;
+    case 'add-sub': newSection(sid); break;
     case 'gh-retry': startUp(); break;
     case 'gh-setup': openSetup(); break;
   }
@@ -823,7 +850,8 @@ function taskDropTarget(el,y){
     return {el:tw,cls:after?'drop-after':'drop-before',tid:other.id,after:after};
   }
   const spot=el.closest('.sec-head,.add-row');
-  if(spot) return {el:spot,cls:'drop-into',sid:spot.closest('.sec').dataset.sid};
+  if(spot){const sid=spot.closest('.sec').dataset.sid; if(!section(sid)||!section(sid).parent) return null; // only onto a subsection
+    return {el:spot,cls:'drop-into',sid:sid};}
   return null;
 }
 function secDropTarget(el,y){
@@ -1123,7 +1151,8 @@ function adopt(r){
 async function connectWith(cfg){
   const r=await ghRead(cfg);
   let d=null;
-  if(r){try{d=normalize(JSON.parse(r.text));}catch(e){throw ghErr('badfile',DATA_PATH+' in that repository is not a to-do data file, so it was left alone.');}}
+  let tidied=false;
+  if(r){try{d=normalize(JSON.parse(r.text));tidied=normalizeMoved;}catch(e){throw ghErr('badfile',DATA_PATH+' in that repository is not a to-do data file, so it was left alone.');}}
   // changes this browser made that GitHub had not confirmed when the page was last closed or refreshed
   let mine=null, mineClashes=false; const draft=loadDraft(cfg);
   if(draft){
@@ -1133,7 +1162,7 @@ async function connectWith(cfg){
     else{mine=dd;mineClashes=true;}                                                                     // the saved file was changed elsewhere too
   }
   clearTimeout(saveTimer); clearTimeout(retryTimer);
-  if(d){data=d; lastText=r.text; lastSha=r.sha; unsaved=false; unsavedReal=false;}
+  if(d){data=d; lastText=r.text; lastSha=r.sha; unsaved=tidied; unsavedReal=tidied;} // tidied: loose tasks were moved into "Other", so save that once
   else{ // no data file yet: start blank (or keep a list you made or restored) and create the file
     if(isSample) data=blankData();
     lastText=''; lastSha=''; unsaved=true; unsavedReal=true;
