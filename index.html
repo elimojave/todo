@@ -6,10 +6,10 @@
 <title>Work to-do</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2322323D'/%3E%3Cpath d='M8 16.5l5.5 5.5L24 10' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%232F9E5E'/%3E%3Cpath d='M8 16.5l5.5 5.5L24 10' fill='none' stroke='%23fff' stroke-width='4'/%3E%3C/svg%3E">
 <style>
 :root{
-  --page:#FFFFFF; --hover:#E6EAED; --raised:#FFFFFF;
+  --page:var(--page-plain,#FFFFFF); --page-ink:var(--page-ink-plain,#18262F); --hover:#E6EAED; --raised:#FFFFFF;
   --ink:#18262F; --muted:#586874; --rule:#BCC5CC;
   --accent:#1B58B8; --accent-ink:#FFFFFF;
   --warn:#8F5B00; --bad:#B0302A;
@@ -19,7 +19,7 @@
 }
 *{box-sizing:border-box}
 html{background:var(--page)}
-html.filtering{--page:#E6EAED}
+html.filtering{--page:var(--page-filter,#E6EAED);--page-ink:var(--page-ink-filter,#18262F)}
 body{margin:0;font:14px/1.35 var(--body);color:var(--ink);background:var(--page);-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -31,20 +31,20 @@ button{cursor:pointer}
 .top{position:sticky;top:0;z-index:5;background:var(--page);border-bottom:1px solid var(--rule);padding:10px 0}
 .top-row{display:flex;align-items:center;gap:8px 10px}
 @media (max-width:900px){.top-row{flex-wrap:wrap}}
-.list-name{flex:1 1 150px;min-width:0;border:0;border-bottom:1px dashed transparent;background:transparent;padding:2px 0;
+.list-name{color:var(--page-ink);flex:1 1 150px;min-width:0;border:0;border-bottom:1px dashed transparent;background:transparent;padding:2px 0;
   font:600 24px/1.15 var(--display);font-stretch:87.5%;letter-spacing:.01em;text-overflow:ellipsis}
 .list-name:hover{border-bottom-color:var(--rule)}
 .list-name:focus{outline:none;border-bottom:1px solid var(--accent)}
 .filter{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 2px}
 .filter svg{display:block}
-.xbtn{width:18px;height:18px;flex:none;border:0;border-radius:50%;background:transparent;padding:0;font:700 15px/18px var(--body);color:var(--ink)}
+.xbtn{width:18px;height:18px;flex:none;border:0;border-radius:50%;background:transparent;padding:0;font:700 15px/18px var(--body);color:var(--page-ink)}
 .xbtn:hover{background:rgba(24,38,47,.14)}
 .dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--c);background:transparent;padding:0;flex:none}
 .dot[aria-pressed="true"]{background:var(--c)}
 .file-state{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:140px;flex:none;text-align:right}
 .file-state b{color:var(--ink);font-weight:600}
 .file-state.warn{color:var(--warn)} .file-state.bad{color:var(--bad)}
-.btn{height:30px;padding:0 11px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;white-space:nowrap;flex:none}
+.btn{color:var(--ink);height:30px;padding:0 11px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;white-space:nowrap;flex:none}
 .btn:hover{border-color:var(--ink)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn.primary:hover{filter:brightness(1.08)}
@@ -62,13 +62,14 @@ button{cursor:pointer}
 #daysN:focus{outline:none;border-color:var(--accent)}
 .icon-btn{width:26px;height:26px;flex:none;border:0;background:transparent;border-radius:4px;display:grid;place-items:center;padding:0}
 .icon-btn:hover{background:rgba(24,38,47,.12)}
-.banner{margin-top:8px;padding:7px 12px;border-left:4px solid var(--accent);background:var(--raised);
+.banner{color:var(--ink);margin-top:8px;padding:7px 12px;border-left:4px solid var(--accent);background:var(--raised);
   display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;font-size:13.5px}
 .banner.warn{border-left-color:var(--warn)} .banner.bad{border-left-color:var(--bad)}
 .banner p{margin:0;flex:1 1 300px}
 
 /* ---------- sections ---------- */
-main{padding:4px 0 96px}
+.top{color:var(--page-ink)}
+main{padding:4px 0 96px;color:var(--page-ink)}
 .sec{margin-top:8px}
 .sec .sec{margin:5px 0 5px 16px}
 .sec-head{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 3px 0 4px;border-radius:4px;border:1px solid rgba(24,38,47,.2);
@@ -76,11 +77,11 @@ main{padding:4px 0 96px}
 .d1>.sec-head{min-height:24px;background:transparent;border:0;border-bottom:1.5px solid var(--muted);border-radius:0;padding-left:0}
 .sec-name{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font:600 16px/1.2 var(--display);font-stretch:87.5%;letter-spacing:.02em}
-.d1 .sec-name{font-size:13px;letter-spacing:.03em;padding:2px 8px;border-radius:3px}
-.sec-rename{flex:1;min-width:0;height:22px;border:1px solid var(--accent);border-radius:3px;background:var(--raised);padding:0 6px;font:600 14.5px var(--display)}
+.d1 .sec-name{color:var(--ink);font-size:13px;letter-spacing:.03em;padding:2px 8px;border-radius:3px}
+.sec-rename{color:var(--ink);flex:1;min-width:0;height:22px;border:1px solid var(--accent);border-radius:3px;background:var(--raised);padding:0 6px;font:600 14.5px var(--display)}
 .caret svg,.chev svg{display:block;transition:transform .15s}
 .collapsed>.sec-head .caret svg,.collapsed>.arch-head .caret svg{transform:rotate(-90deg)}
-.grip,.sgrip{cursor:grab;color:var(--ink);opacity:.35;width:14px;height:20px;flex:none;display:grid;place-items:center;touch-action:none}
+.grip,.sgrip{cursor:grab;color:inherit;opacity:.35;width:14px;height:20px;flex:none;display:grid;place-items:center;touch-action:none}
 .grip svg,.sgrip svg{display:block;pointer-events:none}
 .grip:hover,.sgrip:hover{opacity:1}
 .mix{display:flex;gap:2px;width:150px;height:16px;flex:none}
@@ -88,7 +89,7 @@ main{padding:4px 0 96px}
 .mix i{display:block;min-width:17px;border-radius:2px;color:#fff;font:700 11px/16px var(--display);font-style:normal;text-align:center;font-variant-numeric:tabular-nums}
 .sec-body{padding:2px 0 1px}
 /* a section is a plain white bar; color and counts live on its subsections */
-.d0>.sec-head{background:#fff}
+.d0>.sec-head{background:var(--sec-bg,#fff);color:var(--sec-ink,#18262F)}
 .addsub-row{margin:2px 0 4px 16px;min-height:28px;display:flex;align-items:center}
 .plus.sub{padding:0 8px 0 3px} /* the dashed circle sits directly under the subsections' arrows */
 .sec.sdrop-before{box-shadow:0 -3px 0 var(--accent)}
@@ -98,7 +99,7 @@ main{padding:4px 0 96px}
 
 /* ---------- tasks ---------- */
 .tw{margin:2px 0;border:1.5px solid transparent;border-radius:6px;scroll-margin-top:calc(var(--top-h,0px) + 8px)}
-.tw.open{border-color:var(--ink);background:var(--raised);margin:4px 0}
+.tw.open{border-color:var(--ink);background:var(--raised);margin:4px 0;color:var(--ink)}
 .tw.dragging{opacity:.4}
 .ghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;background:#22323D;color:#fff;padding:4px 10px;border-radius:4px;font-size:13px;
   max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:2px 2px 0 rgba(24,38,47,.25)}
@@ -145,13 +146,13 @@ html.is-dragging,html.is-dragging *{cursor:grabbing!important;user-select:none!i
 .d-foot{display:flex;justify-content:flex-end}
 
 .add-row{padding:1px 56px 1px 81px;min-height:28px;display:flex;align-items:center}
-.add-row input{width:100%;height:26px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;padding:0 8px}
+.add-row input{color:var(--ink);width:100%;height:26px;border:1px solid var(--rule);background:var(--raised);border-radius:4px;padding:0 8px}
 .add-row input::placeholder{color:var(--muted)}
 .add-row input:focus{outline:none;border-color:var(--accent)}
-.plus{display:inline-flex;align-items:center;gap:7px;height:26px;border:0;background:transparent;padding:0 8px 0 0;color:var(--muted)}
+.plus{display:inline-flex;align-items:center;gap:7px;height:26px;border:0;background:transparent;padding:0 8px 0 0;color:inherit;opacity:.6}
 .plus i{width:20px;height:20px;border:1.5px dashed currentColor;border-radius:50%;display:grid;place-items:center;font:700 15px/1 var(--body);font-style:normal;padding-bottom:1px}
 .plus span{opacity:0;font-size:13px}
-.plus:hover,.plus:focus-visible{color:var(--ink)}
+.plus:hover,.plus:focus-visible{opacity:1}
 .plus:hover span,.plus:focus-visible span{opacity:1}
 .nosec{margin:28px 0 0;color:var(--muted)}
 
@@ -168,6 +169,14 @@ html.is-dragging,html.is-dragging *{cursor:grabbing!important;user-select:none!i
 .gate .btn{height:40px;padding:0 18px}
 .linkish{border:0;background:transparent;color:var(--accent);text-decoration:underline;padding:0}
 body.gated .filter,body.gated .hbtn{display:none}
+
+/* ---------- colors box ---------- */
+.crow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0}
+.cgrid{display:grid;grid-template-columns:22px 44px 44px 1fr;gap:8px 12px;align-items:center;margin:10px 0 14px;padding-top:10px;border-top:1px solid var(--rule)}
+.cgrid .ch{font-size:12.5px;font-weight:600}
+.cprev{width:16px;height:16px;border-radius:50%;display:block}
+.csample{font-size:14px}
+#colDlg input[type=color]{width:44px;height:28px;padding:2px;border:1px solid var(--rule);border-radius:3px;background:#fff}
 
 /* ---------- GitHub connection box ---------- */
 dialog{border:1px solid var(--ink);border-radius:4px;background:#fff;color:var(--ink);padding:18px;width:100%;max-width:min(480px,calc(100vw - 24px))}
@@ -249,6 +258,15 @@ dialog p{color:var(--muted);margin:0 0 12px;font-size:13.5px}
 <div id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
+<dialog id="colDlg" aria-labelledby="colTitle">
+  <h2 id="colTitle">Colors</h2>
+  <label class="crow"><span>Page background</span><input type="color" data-c="page"></label>
+  <label class="crow"><span>Page background while filtering</span><input type="color" data-c="pageFilter"></label>
+  <label class="crow"><span>Section bar</span><input type="color" data-c="section"></label>
+  <div class="cgrid" id="colGrid"></div>
+  <div class="dlg-foot"><button class="btn" id="colReset">Reset to defaults</button><span><button class="btn primary" id="colClose">Close</button></span></div>
+</dialog>
+
 <dialog id="archDlg" aria-labelledby="archTitle">
   <h2 id="archTitle">Archived</h2>
   <div id="archBody"></div>
@@ -298,6 +316,35 @@ const ST={
   4:{name:'Green', dot:'#2F9E5E',text:'#1E7A45',seg:'#1E7A45',bg:'#BFE6CD'}
 };
 const STATUSES=[1,2,3,4];
+/* Colors can be changed under the settings menu. They are stored with the tasks (data.colors) so every computer shows the same.
+   dot and text are set directly; the count-bar color (seg) follows the text color and the tint behind a subsection name (bg)
+   is a pale mix of the circle color. With the built-in colors the hand-tuned seg and bg values above are kept. */
+const DEF_COLORS={page:'#FFFFFF',pageFilter:'#E6EAED',section:'#FFFFFF',dots:STATUSES.map(n=>ST[n].dot),texts:STATUSES.map(n=>ST[n].text)};
+const DEF_SEG=STATUSES.map(n=>ST[n].seg), DEF_BG=STATUSES.map(n=>ST[n].bg);
+const hexOk=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
+const rgbOf=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lum=h=>{const c=rgbOf(h).map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];};
+const inkFor=h=>lum(h)>0.36?'#18262F':'#FFFFFF'; // dark text on light colors, white text on dark ones
+const paler=(h,p)=>'#'+rgbOf(h).map(v=>Math.round(v*p+255*(1-p)).toString(16).padStart(2,'0')).join('');
+function cleanColors(c){ // -> a complete, valid set, or null when it is just the defaults
+  c=c&&typeof c==='object'?c:{};
+  const out={page:hexOk(c.page)?c.page:DEF_COLORS.page,pageFilter:hexOk(c.pageFilter)?c.pageFilter:DEF_COLORS.pageFilter,section:hexOk(c.section)?c.section:DEF_COLORS.section,
+    dots:DEF_COLORS.dots.map((d,i)=>Array.isArray(c.dots)&&hexOk(c.dots[i])?c.dots[i]:d),texts:DEF_COLORS.texts.map((d,i)=>Array.isArray(c.texts)&&hexOk(c.texts[i])?c.texts[i]:d)};
+  return JSON.stringify(out).toLowerCase()===JSON.stringify(DEF_COLORS).toLowerCase()?null:out;
+}
+const currentColors=()=>(data&&data.colors)||DEF_COLORS;
+function applyColors(){
+  const c=currentColors(), root=document.documentElement.style, same=(a,b)=>a.toLowerCase()===b.toLowerCase();
+  root.setProperty('--page-plain',c.page); root.setProperty('--page-filter',c.pageFilter);
+  root.setProperty('--page-ink-plain',inkFor(c.page)); root.setProperty('--page-ink-filter',inkFor(c.pageFilter));
+  root.setProperty('--sec-bg',c.section); root.setProperty('--sec-ink',inkFor(c.section));
+  STATUSES.forEach((n,i)=>{
+    ST[n].dot=c.dots[i]; ST[n].text=c.texts[i];
+    ST[n].seg=same(c.texts[i],DEF_COLORS.texts[i])?DEF_SEG[i]:c.texts[i];
+    ST[n].segInk=inkFor(ST[n].seg);
+    ST[n].bg=same(c.dots[i],DEF_COLORS.dots[i])?DEF_BG[i]:paler(c.dots[i],0.33);
+  });
+}
 
 /* ================= state ================= */
 let data;
@@ -392,6 +439,7 @@ function sampleData(){
 function normalize(o){
   if(!o||typeof o!=='object'||!Array.isArray(o.tasks)||!Array.isArray(o.sections)) throw new Error('not a to-do data file');
   const d={title:typeof o.title==='string'&&o.title?o.title:'Work to-do'};
+  const cc=cleanColors(o.colors); if(cc) d.colors=cc;
   d.sections=o.sections.map(s=>({id:String(s.id||uid()),name:String(s.name||'Section'),parent:s.parent?String(s.parent):null,collapsed:!!s.collapsed,archived:!!s.archived}));
   const byId=new Map(d.sections.map(s=>[s.id,s]));
   d.sections.forEach(s=>{ if(s.parent&&(!byId.has(s.parent)||s.parent===s.id)) s.parent=null; });
@@ -493,7 +541,7 @@ function applyFilter(){
 }
 
 /* ================= rendering ================= */
-function render(){document.documentElement.classList.toggle('filtering',filterOn());renderTop();renderList();renderFile();}
+function render(){applyColors();document.documentElement.classList.toggle('filtering',filterOn());renderTop();renderList();renderFile();}
 
 function renderTop(){
   const name=$('#listName'); if(document.activeElement!==name) name.value=data.title;
@@ -569,7 +617,7 @@ function sectionHTML(s,depth){
   const sub=depth===1, arch=isArchived(s.id);
   const own=sub?data.tasks.filter(t=>t.section===s.id):[];
   const vis=arch?own:own.filter(matches);
-  const segs=STATUSES.map(n=>{const c=own.filter(t=>t.status===n).length;return c?'<i style="flex:'+c+';background:'+ST[n].seg+'">'+c+'</i>':'';}).join('');
+  const segs=STATUSES.map(n=>{const c=own.filter(t=>t.status===n).length;return c?'<i style="flex:'+c+';background:'+ST[n].seg+';color:'+ST[n].segInk+'">'+c+'</i>':'';}).join('');
   const segLabel=STATUSES.map(n=>{const c=own.filter(t=>t.status===n).length;return c?c+' '+ST[n].name.toLowerCase():'';}).filter(Boolean).join(', ');
   const name=ui.renaming===s.id
     ?'<input class="sec-rename" data-act="rename-input" data-fid="ren-'+s.id+'" value="'+esc(s.name)+'" aria-label="'+(sub?'Subsection':'Section')+' name">'
@@ -991,9 +1039,34 @@ $('#moreBtn').addEventListener('click',e=>{
     {label:'Download a backup copy',hint:'Saves everything as one .json file',act:()=>download('todo-backup-'+dateStamp()+'.json',serialize(),'application/json')},
     {label:'Restore from a backup',hint:'Replaces what is on screen',act:()=>$('#importFile').click()},
     {label:'Export to CSV for Excel',act:exportCSV},
+    {label:'Colors',act:openColors},
     {sep:true}
   ].concat(connected?[{label:'Save now',act:()=>saveNow()}]:[],[{label:'GitHub connection',act:openSetup}]));
 });
+/* the colors box: every change shows at once and is saved with the tasks */
+const colDlg=$('#colDlg');
+function fillColors(){
+  const c=currentColors();
+  $$('#colDlg > .crow input').forEach(i=>{i.value=c[i.dataset.c].toLowerCase();});
+  $('#colGrid').innerHTML='<span></span><span class="ch">Circle</span><span class="ch">Text</span><span></span>'+STATUSES.map((n,i)=>
+    '<i class="cprev" style="background:'+c.dots[i]+'"></i>'+
+    '<input type="color" data-c="dot" data-i="'+i+'" value="'+c.dots[i].toLowerCase()+'" aria-label="Circle color, row '+(i+1)+'">'+
+    '<input type="color" data-c="text" data-i="'+i+'" value="'+c.texts[i].toLowerCase()+'" aria-label="Text color, row '+(i+1)+'">'+
+    '<span class="csample" style="color:'+c.texts[i]+'">Sample task</span>').join('');
+}
+function openColors(){pushUndo();fillColors();colDlg.showModal();}
+colDlg.addEventListener('input',e=>{
+  const a=e.target, k=a.dataset?a.dataset.c:null; if(!k||!hexOk(a.value)) return;
+  const c=JSON.parse(JSON.stringify(currentColors()));
+  if(k==='dot') c.dots[+a.dataset.i]=a.value; else if(k==='text') c.texts[+a.dataset.i]=a.value; else c[k]=a.value;
+  const cc=cleanColors(c); if(cc) data.colors=cc; else delete data.colors;
+  markDirty(); render();
+  if(k==='dot') $$('#colGrid .cprev')[+a.dataset.i].style.background=a.value;
+  if(k==='text') $$('#colGrid .csample')[+a.dataset.i].style.color=a.value;
+});
+$('#colReset').addEventListener('click',()=>{if(data.colors){delete data.colors;markDirty();render();}fillColors();});
+$('#colClose').addEventListener('click',()=>colDlg.close());
+
 $('#importFile').addEventListener('change',async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   try{
